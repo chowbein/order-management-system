@@ -1,0 +1,90 @@
+import React from 'react';
+import './ProductForm.css';
+
+const ProductForm = ({ formData, onInputChange, onSubmit, onCancel, editingProduct }) => {
+    return (
+        <div className="product-form-container">
+            <h3>{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
+            <form onSubmit={onSubmit}>
+                <div className="pm-form-grid">
+                    <div className="pm-form-field">
+                        <label>
+                            Product Name *
+                        </label>
+                        <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={onInputChange}
+                            required
+                            placeholder="e.g., Laptop"
+                        />
+                    </div>
+                    
+                    <div className="pm-form-field">
+                        <label>
+                            Price *
+                        </label>
+                        <input
+                            type="number"
+                            name="price"
+                            value={formData.price}
+                            onChange={onInputChange}
+                            required
+                            step="0.01"
+                            min="0"
+                            placeholder="e.g., 29.99"
+                        />
+                    </div>
+                </div>
+
+                <div className="pm-form-field">
+                    <label>
+                        Description
+                    </label>
+                    <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={onInputChange}
+                        rows="3"
+                        placeholder="Product description..."
+                    />
+                </div>
+
+                <div className="pm-form-field">
+                    <label>
+                        Stock Quantity *
+                    </label>
+                    <input
+                        type="number"
+                        name="stock_quantity"
+                        value={formData.stock_quantity}
+                        onChange={onInputChange}
+                        required
+                        min="0"
+                        placeholder="e.g., 100"
+                        style={{ width: '200px' }}
+                    />
+                </div>
+
+                <div className="pm-form-actions">
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        className="pm-cancel-btn"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        className="pm-submit-btn"
+                    >
+                        {editingProduct ? 'Update Product' : 'Create Product'}
+                    </button>
+                </div>
+            </form>
+        </div>
+    );
+};
+
+export default ProductForm;

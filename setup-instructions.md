@@ -45,8 +45,8 @@ Once running, the application will be available at:
 
 ### What the Scripts Do
 
-- `start-backend.sh`: Activates the Python virtual environment, applies any pending database migrations, and starts the Django server.
-- `start-frontend.sh`: Installs Node.js dependencies (if missing) and starts the React development server.
+- `start-backend.sh`: Creates a Python virtual environment (if missing), installs/updates dependencies from `requirements.txt`, applies any pending database migrations, and starts the Django server.
+- `start-frontend.sh`: Installs/updates Node.js dependencies from `package.json` (if missing) and starts the React development server.
 
 ## 3. How to Test the Features (Sample Data Guide)
 

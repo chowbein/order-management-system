@@ -260,12 +260,14 @@ class InventoryLogModelTest(TestCase):
         """Test creating an inventory log for addition"""
         log = InventoryLog.objects.create(
             product=self.product,
+            product_name=self.product.name,  # Required for audit trail
             change_type='addition',
             quantity_change=10,
             reason='Stock replenishment'
         )
         
         self.assertEqual(log.product, self.product)
+        self.assertEqual(log.product_name, self.product.name)
         self.assertEqual(log.change_type, 'addition')
         self.assertEqual(log.quantity_change, 10)
         self.assertEqual(log.reason, 'Stock replenishment')
@@ -275,6 +277,7 @@ class InventoryLogModelTest(TestCase):
         """Test creating an inventory log for deduction"""
         log = InventoryLog.objects.create(
             product=self.product,
+            product_name=self.product.name,  # Required for audit trail
             change_type='deduction',
             quantity_change=-5,
             reason='Order confirmed'
@@ -287,6 +290,7 @@ class InventoryLogModelTest(TestCase):
         """Test the __str__ method of InventoryLog"""
         log = InventoryLog.objects.create(
             product=self.product,
+            product_name=self.product.name,  # Required for audit trail
             change_type='addition',
             quantity_change=15,
             reason='Restock'
@@ -299,6 +303,7 @@ class InventoryLogModelTest(TestCase):
         """Test that inventory logs are ordered by created_at descending"""
         log1 = InventoryLog.objects.create(
             product=self.product,
+            product_name=self.product.name,  # Required for audit trail
             change_type='addition',
             quantity_change=10,
             reason='First'
@@ -306,6 +311,7 @@ class InventoryLogModelTest(TestCase):
         
         log2 = InventoryLog.objects.create(
             product=self.product,
+            product_name=self.product.name,  # Required for audit trail
             change_type='deduction',
             quantity_change=-5,
             reason='Second'
@@ -316,14 +322,17 @@ class InventoryLogModelTest(TestCase):
         self.assertEqual(logs[0].id, log2.id)
         self.assertEqual(logs[1].id, log1.id)
 
-    def test_inventory_log_cascade_delete(self):
-        """Test that deleting a product deletes its inventory logs"""
-        InventoryLog.objects.create(
+    def test_inventory_log_preserved_after_product_delete(self):
+        """Test that deleting a product PRESERVES its inventory logs (audit trail)"""
+        log = InventoryLog.objects.create(
             product=self.product,
+            product_name=self.product.name,  # Stored for preservation
             change_type='addition',
             quantity_change=10,
             reason='Test'
         )
+        
+        product_name = self.product.name
         
         # Verify log exists
         self.assertEqual(InventoryLog.objects.filter(product=self.product).count(), 1)
@@ -331,8 +340,13 @@ class InventoryLogModelTest(TestCase):
         # Delete the product
         self.product.delete()
         
-        # Verify log is also deleted
-        self.assertEqual(InventoryLog.objects.count(), 0)
+        # CRITICAL: Verify log is PRESERVED (not deleted)
+        self.assertEqual(InventoryLog.objects.count(), 1)
+        
+        # Verify the log still has the product name
+        log.refresh_from_db()
+        self.assertEqual(log.product_name, product_name)
+        self.assertIsNone(log.product)  # FK is now null
 
 
 class OrderActivityModelTest(TestCase):

@@ -3,6 +3,27 @@ import axios from 'axios';
 import { API_BASE_URL } from './apiConfig';
 import './ProductManagement.css';
 
+/**
+ * ProductManagement Component
+ * 
+ * Full CRUD interface for product inventory:
+ * - Create new products
+ * - Read/display all products
+ * - Update product details and stock
+ * - Delete products
+ * 
+ * Features:
+ * - Real-time search/filter
+ * - Inline editing with modal form
+ * - Stock level indicators (critical, low, good)
+ * - Automatic inventory logging (handled by backend)
+ * 
+ * API Integration:
+ * - GET /api/products/ - Fetch all products
+ * - POST /api/products/ - Create new product
+ * - PUT /api/products/{id}/ - Update product
+ * - DELETE /api/products/{id}/ - Delete product
+ */
 const ProductManagement = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -11,7 +32,7 @@ const ProductManagement = () => {
     const [showForm, setShowForm] = useState(false);
     const [message, setMessage] = useState(null);
     
-    // Form state
+    // Form state for create/edit operations
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -80,18 +101,20 @@ const ProductManagement = () => {
 
         try {
             if (editingProduct) {
-                // Update existing product
+                // Update mode: PUT request to update existing product
+                // Backend automatically logs stock changes via InventoryLog
                 await axios.put(`${API_BASE_URL}/api/products/${editingProduct.id}/`, formData);
                 setMessage({ type: 'success', text: 'Product updated successfully!' });
             } else {
-                // Create new product
+                // Create mode: POST request to create new product
+                // Backend automatically creates initial inventory log
                 await axios.post(`${API_BASE_URL}/api/products/`, formData);
                 setMessage({ type: 'success', text: 'Product created successfully!' });
             }
             
             resetForm();
-            fetchProducts();
-            setTimeout(() => setMessage(null), 3000);
+            fetchProducts();  // Refresh list to show changes
+            setTimeout(() => setMessage(null), 3000);  // Auto-hide success message
         } catch (err) {
             console.error('Error saving product:', err);
             setMessage({ 

@@ -5,6 +5,28 @@ import './OrderList.css';
 import Modal from './Modal';
 import OrderForm from './OrderForm';
 
+/**
+ * OrderList Component
+ * 
+ * Complex order management interface with:
+ * - View all orders (pending, confirmed, cancelled)
+ * - Confirm orders (deducts inventory)
+ * - Cancel entire orders (restores inventory if confirmed)
+ * - Partial cancellation (remove individual items from confirmed orders)
+ * - Update item quantities (increase/decrease)
+ * 
+ * Key Business Logic:
+ * - Pending orders can be confirmed
+ * - Confirmed orders can be cancelled (stock restored) or partially modified
+ * - Cancelled orders cannot be changed
+ * - Stock validation happens on backend
+ * 
+ * API Integration:
+ * - GET /api/orders/ - Fetch all orders
+ * - POST /api/orders/{id}/confirm/ - Confirm order
+ * - POST /api/orders/{id}/cancel/ - Cancel order
+ * - POST /api/orders/{id}/update-item/ - Modify order item quantity
+ */
 const OrderList = ({ selectedOrderId: initialSelectedId }) => {
     const [orders, setOrders] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -13,13 +35,14 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
     const [message, setMessage] = useState(null);
-    const [editingItem, setEditingItem] = useState(null); // Tracks { id: itemId, quantity: newQuantity }
+    const [editingItem, setEditingItem] = useState(null); // Tracks item being edited
     const [isCreateOrderModalOpen, setCreateOrderModalOpen] = useState(false);
 
     useEffect(() => {
         fetchOrders();
     }, []);
 
+    // Auto-select order if navigated from Create Order page
     useEffect(() => {
         if (initialSelectedId && orders.length > 0) {
             const orderToSelect = orders.find(o => o.id === initialSelectedId);
@@ -43,6 +66,17 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
         }
     };
     
+    /**
+     * Handle order confirmation or cancellation
+     * 
+     * Confirm: Changes status pending → confirmed, deducts inventory
+     * Cancel: Changes status to cancelled, restores inventory (if was confirmed)
+     * 
+     * Backend validates:
+     * - Order status (can't confirm already confirmed orders)
+     * - Stock availability (can't confirm if insufficient stock)
+     * - Uses @transaction.atomic for data integrity
+     */
     const handleAction = async (actionType) => {
         if (!selectedOrder) return;
 
@@ -56,7 +90,8 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
             try {
                 const response = await axios.post(`${API_BASE_URL}/api/orders/${selectedOrder.id}/${actionType}/`);
                 setMessage({ type: 'success', text: response.data.message });
-                // Refresh the list and the selected order details
+                
+                // Refresh order list and update selected order with latest data
                 await fetchOrders();
                 const updatedOrder = response.data.order;
                 setSelectedOrder(updatedOrder);
@@ -69,6 +104,15 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
         }
     };
 
+    /**
+     * Partial Cancellation - Remove a single item from confirmed order
+     * 
+     * Use case: Customer changes their mind about one product after order confirmed
+     * - Removes the item completely
+     * - Restores stock for that item
+     * - Recalculates order total
+     * - Only works on confirmed orders (pending orders can be edited before confirmation)
+     */
     const handleCancelItem = async (itemId) => {
         if (!selectedOrder) return;
 
@@ -76,8 +120,9 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
             setActionLoading(true);
             setMessage(null);
             try {
-                const response = await axios.post(`${API_BASE_URL}/api/orders/${selectedOrder.id}/cancel-item/`, {
-                    order_item_id: itemId
+                const response = await axios.post(`${API_BASE_URL}/api/orders/${selectedOrder.id}/update-item/`, {
+                    order_item_id: itemId,
+                    new_quantity: 0  // Setting to 0 removes the item
                 });
                 setMessage({ type: 'success', text: response.data.message });
                 // Refresh data

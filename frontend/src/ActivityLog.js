@@ -3,11 +3,27 @@ import axios from 'axios';
 import { API_BASE_URL } from './apiConfig';
 import './ActivityLog.css';
 
+/**
+ * ActivityLog Component
+ * 
+ * Displays unified timeline of all system activities:
+ * - Order events (created, confirmed, cancelled)
+ * - Inventory changes (stock additions/deductions)
+ * 
+ * Features:
+ * - Chronological sorting (newest first)
+ * - Filter by type (all, orders, inventory)
+ * - Color-coded changes (green for additions, red for deductions)
+ * - Complete audit trail for compliance
+ * 
+ * API Integration:
+ * - GET /api/activity-log/ - Fetches unified log from backend
+ */
 const ActivityLog = () => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [filter, setFilter] = useState('all'); // 'all', 'order', 'inventory'
+    const [filter, setFilter] = useState('all'); // Filter: 'all', 'order', 'inventory'
 
     useEffect(() => {
         fetchActivityLogs();
@@ -27,12 +43,15 @@ const ActivityLog = () => {
         }
     };
 
+    // Client-side filtering for better UX (instant response)
     const filteredLogs = logs.filter(log => {
         if (filter === 'all') return true;
         return log.log_type === filter;
     });
 
+    // Render different log types with appropriate formatting
     const renderLog = (log) => {
+        // Inventory logs: show product name, change type, quantity
         if (log.log_type === 'inventory') {
             const { product_name, change_type, quantity_change, reason } = log.details;
             const isAddition = change_type === 'addition';
@@ -52,6 +71,7 @@ const ActivityLog = () => {
             );
         }
 
+        // Order logs: show order number, activity type, description
         if (log.log_type === 'order') {
             const { order_number, activity_type, description } = log.details;
             return (

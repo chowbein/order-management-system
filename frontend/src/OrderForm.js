@@ -3,6 +3,22 @@ import axios from 'axios';
 import { API_BASE_URL } from './apiConfig';
 import './OrderForm.css';
 
+/**
+ * OrderForm Component
+ * 
+ * Handles order creation with real-time validation and stock checking.
+ * 
+ * Key Features:
+ * - Multi-item order support
+ * - Real-time stock validation (frontend)
+ * - Transaction-like behavior (creates order then items, cleans up on failure)
+ * - Comprehensive validation before submission
+ * 
+ * API Integration:
+ * - POST /api/orders/ - Create order
+ * - POST /api/order-items/ - Create each item
+ * - GET /api/products/ - Fetch available products
+ */
 const OrderForm = ({ onOrderCreated }) => {
     const [products, setProducts] = useState([]);
     const [orderItems, setOrderItems] = useState([{ product: '', quantity: 1, price: 0 }]);
@@ -12,6 +28,7 @@ const OrderForm = ({ onOrderCreated }) => {
     const [success, setSuccess] = useState(false);
     const [submitted, setSubmitted] = useState(false);
 
+    // Fetch products on component mount
     useEffect(() => {
         fetchProducts();
     }, []);
@@ -39,7 +56,8 @@ const OrderForm = ({ onOrderCreated }) => {
         const newItems = [...orderItems];
         newItems[index][field] = value;
 
-        // Update price when product is selected
+        // Auto-populate price when product is selected
+        // This captures the current price, preserving it even if product price changes later
         if (field === 'product') {
             const selectedProduct = products.find(p => p.id === parseInt(value));
             if (selectedProduct) {
@@ -63,14 +81,17 @@ const OrderForm = ({ onOrderCreated }) => {
         setError(null);
         setSuccess(false);
 
-        // Comprehensive validation
+        // ===== VALIDATION PHASE =====
+        // All validations happen BEFORE any API calls
+        
+        // Validation 1: Order number required
         if (!orderNumber.trim()) {
             setError('Please enter an order number');
             setLoading(false);
             return;
         }
 
-        // Validate order items
+        // Validation 2: At least one valid item required
         const validItems = orderItems.filter(item => item.product && item.quantity > 0);
         if (validItems.length === 0) {
             setError('Please add at least one item with a quantity greater than 0');
@@ -78,7 +99,9 @@ const OrderForm = ({ onOrderCreated }) => {
             return;
         }
 
-        // Check if all items have valid products and prices
+        // Validation 3: Check each item for completeness and stock availability
+        // This provides better UX than backend validation (immediate feedback)
+        // Backend still validates for security (don't trust client)
         for (let i = 0; i < validItems.length; i++) {
             const item = validItems[i];
             if (!item.product) {
@@ -97,7 +120,8 @@ const OrderForm = ({ onOrderCreated }) => {
                 return;
             }
 
-            // Check stock availability
+            // CRITICAL: Check stock before submitting (prevents unnecessary API calls)
+            // Note: Backend validates again (time-of-check vs time-of-use problem)
             const selectedProduct = products.find(p => p.id === parseInt(item.product));
             if (selectedProduct && selectedProduct.stock_quantity < item.quantity) {
                 setError(`Item ${i + 1}: ${selectedProduct.name} only has ${selectedProduct.stock_quantity} units in stock`);
@@ -106,10 +130,14 @@ const OrderForm = ({ onOrderCreated }) => {
             }
         }
 
+        // ===== API EXECUTION PHASE =====
+        // Transaction-like behavior: create order, then items
+        // If any item fails, delete the order (cleanup)
+
         let createdOrderId = null;
 
         try {
-            // Create the order
+            // Step 1: Create the order header
             const totalAmount = calculateTotal();
             if (!totalAmount || totalAmount <= 0) {
                 setError('Order total must be greater than 0');
@@ -119,7 +147,7 @@ const OrderForm = ({ onOrderCreated }) => {
 
             const orderData = {
                 order_number: orderNumber.trim(),
-                status: 'pending',
+                status: 'pending',  // Orders start as pending
                 total_amount: totalAmount
             };
 
@@ -130,7 +158,8 @@ const OrderForm = ({ onOrderCreated }) => {
                 throw new Error('Failed to get order ID from server');
             }
 
-            // Create order items one by one
+            // Step 2: Create each order item
+            // If ANY item fails, we clean up by deleting the order
             for (let i = 0; i < validItems.length; i++) {
                 const item = validItems[i];
                 try {
@@ -138,11 +167,13 @@ const OrderForm = ({ onOrderCreated }) => {
                         order: createdOrderId,
                         product: parseInt(item.product),
                         quantity: parseInt(item.quantity),
-                        unit_price: parseFloat(item.price)
+                        unit_price: parseFloat(item.price)  // Captures price at order time
                     });
                 } catch (itemError) {
                     console.error(`Error creating order item ${i + 1}:`, itemError);
-                    // If any item fails, try to delete the order (cleanup)
+                    
+                    // CLEANUP: Delete the order since it's incomplete
+                    // This prevents orphaned orders with no items
                     try {
                         await axios.delete(`${API_BASE_URL}/api/orders/${createdOrderId}/`);
                     } catch (deleteError) {

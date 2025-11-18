@@ -32,13 +32,17 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class InventoryLogSerializer(serializers.ModelSerializer):
-    """Serializer for the InventoryLog model"""
-    product_name = serializers.CharField(source='product.name', read_only=True)
+    """
+    Serializer for the InventoryLog model.
+    
+    Note: product_name is stored directly in the model (not from FK)
+    This preserves product names in audit trail even after product deletion.
+    """
     
     class Meta:
         model = InventoryLog
         fields = ['id', 'product', 'product_name', 'change_type', 'quantity_change', 'reason', 'created_at']
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'product_name', 'created_at']
 
 
 class OrderActivitySerializer(serializers.ModelSerializer):

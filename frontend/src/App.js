@@ -5,8 +5,18 @@ import ProductManagement from './ProductManagement';
 import OrderList from './OrderList';
 import ActivityLog from './ActivityLog';
 
+/**
+ * Main App Component
+ * 
+ * Single-page application structure with:
+ * - Sidebar navigation
+ * - Tab-based content switching
+ * - Four main sections: Dashboard, Products, Orders, Activity Log
+ * 
+ * Navigation handled client-side (no routing library needed for this scope)
+ */
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('dashboard');  // Default view
 
   const renderContent = () => {
     switch (activeTab) {

@@ -3,6 +3,22 @@ import axios from 'axios';
 import { API_BASE_URL } from './apiConfig';
 import './Dashboard.css';
 
+/**
+ * Dashboard Component
+ * 
+ * Displays real-time business intelligence:
+ * - Total orders count (all statuses)
+ * - Total revenue (confirmed orders only)
+ * - Low stock alerts (products < 10 units)
+ * 
+ * Features:
+ * - Auto-refresh every 30 seconds
+ * - Manual refresh button
+ * - Visual alerts for out-of-stock vs low-stock
+ * 
+ * API Integration:
+ * - GET /api/dashboard/ - Fetches all statistics
+ */
 const Dashboard = () => {
     const [statistics, setStatistics] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -10,8 +26,12 @@ const Dashboard = () => {
 
     useEffect(() => {
         fetchStatistics();
-        // Refresh statistics every 30 seconds
+        
+        // Auto-refresh statistics every 30 seconds for real-time monitoring
+        // Useful for tracking inventory and orders without manual refresh
         const interval = setInterval(fetchStatistics, 30000);
+        
+        // Cleanup: Clear interval when component unmounts
         return () => clearInterval(interval);
     }, []);
 

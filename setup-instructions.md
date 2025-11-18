@@ -103,8 +103,4 @@ To connect with a database client like TablePlus:
 1.  Choose **SQLite** as the connection type.
 2.  Set the database file path to the absolute path of `backend/db.sqlite3`.
 
-## 5. Troubleshooting
 
-- **CORS Errors**: Ensure the `start-backend.sh` script ran successfully and that `corsheaders` is configured in `settings.py`.
-- **"Module not found"**: Run `pip install -r backend/requirements.txt` and `npm install` in the `frontend` directory.
-- **Port in use**: The scripts will alert you. You can manually start the servers on different ports if needed (see `README.md` for instructions).

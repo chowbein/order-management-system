@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django.db import transaction
 from .models import Product, Order, OrderItem, InventoryLog
-from .serializers import ProductSerializer, OrderSerializer
+from .serializers import ProductSerializer, OrderSerializer, OrderItemSerializer, InventoryLogSerializer
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -93,3 +93,71 @@ class OrderViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_200_OK
         )
+
+    @action(detail=True, methods=['post'])
+    @transaction.atomic
+    def cancel(self, request, pk=None):
+        """
+        Custom action to cancel an order.
+        - Increases stock quantity for each product in the order (restores inventory)
+        - Creates inventory log entries
+        - Updates order status to 'cancelled'
+        """
+        order = self.get_object()
+
+        # Check if order is already cancelled
+        if order.status == 'cancelled':
+            return Response(
+                {'error': 'Order is already cancelled'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get all order items
+        order_items = OrderItem.objects.filter(order=order).select_related('product')
+
+        # Process each order item
+        for item in order_items:
+            # Increase stock quantity (restore inventory)
+            item.product.stock_quantity += item.quantity
+            item.product.save()
+
+            # Create inventory log entry
+            InventoryLog.objects.create(
+                product=item.product,
+                change_type='addition',
+                quantity_change=item.quantity,
+                reason=f'Order {order.order_number} cancelled'
+            )
+
+        # Update order status
+        order.status = 'cancelled'
+        order.save()
+
+        # Serialize and return the updated order
+        serializer = self.get_serializer(order)
+        return Response(
+            {
+                'message': 'Order cancelled successfully',
+                'order': serializer.data
+            },
+            status=status.HTTP_200_OK
+        )
+
+
+class OrderItemViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for viewing and editing OrderItem instances.
+    """
+    queryset = OrderItem.objects.all().select_related('order', 'product')
+    serializer_class = OrderItemSerializer
+    permission_classes = [AllowAny]  # Change this to appropriate permissions in production
+
+
+class InventoryLogViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for viewing InventoryLog instances.
+    Read-only - logs cannot be modified directly.
+    """
+    queryset = InventoryLog.objects.all().select_related('product')
+    serializer_class = InventoryLogSerializer
+    permission_classes = [AllowAny]  # Change this to appropriate permissions in production

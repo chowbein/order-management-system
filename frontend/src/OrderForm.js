@@ -59,13 +59,14 @@ const OrderForm = ({ onOrderCreated }) => {
         setError(null);
         setSuccess(false);
 
-        // Validate
+        // Comprehensive validation
         if (!orderNumber.trim()) {
             setError('Please enter an order number');
             setLoading(false);
             return;
         }
 
+        // Validate order items
         const validItems = orderItems.filter(item => item.product && item.quantity > 0);
         if (validItems.length === 0) {
             setError('Please add at least one item to the order');
@@ -73,24 +74,78 @@ const OrderForm = ({ onOrderCreated }) => {
             return;
         }
 
+        // Check if all items have valid products and prices
+        for (let i = 0; i < validItems.length; i++) {
+            const item = validItems[i];
+            if (!item.product) {
+                setError(`Item ${i + 1}: Please select a product`);
+                setLoading(false);
+                return;
+            }
+            if (!item.quantity || item.quantity <= 0) {
+                setError(`Item ${i + 1}: Quantity must be greater than 0`);
+                setLoading(false);
+                return;
+            }
+            if (!item.price || item.price <= 0) {
+                setError(`Item ${i + 1}: Invalid price. Please select a valid product`);
+                setLoading(false);
+                return;
+            }
+
+            // Check stock availability
+            const selectedProduct = products.find(p => p.id === parseInt(item.product));
+            if (selectedProduct && selectedProduct.stock_quantity < item.quantity) {
+                setError(`Item ${i + 1}: ${selectedProduct.name} only has ${selectedProduct.stock_quantity} units in stock`);
+                setLoading(false);
+                return;
+            }
+        }
+
+        let createdOrderId = null;
+
         try {
             // Create the order
-            const orderData = {
-                order_number: orderNumber,
-                status: 'pending',
-                total_amount: calculateTotal()
-            };
-            const orderResponse = await axios.post('http://localhost:8000/api/orders/', orderData);
-            const orderId = orderResponse.data.id;
+            const totalAmount = calculateTotal();
+            if (!totalAmount || totalAmount <= 0) {
+                setError('Order total must be greater than 0');
+                setLoading(false);
+                return;
+            }
 
-            // Create order items
-            for (const item of validItems) {
-                await axios.post('http://localhost:8000/api/order-items/', {
-                    order: orderId,
-                    product: item.product,
-                    quantity: item.quantity,
-                    unit_price: item.price
-                });
+            const orderData = {
+                order_number: orderNumber.trim(),
+                status: 'pending',
+                total_amount: totalAmount
+            };
+
+            const orderResponse = await axios.post('http://localhost:8000/api/orders/', orderData);
+            createdOrderId = orderResponse.data.id;
+
+            if (!createdOrderId) {
+                throw new Error('Failed to get order ID from server');
+            }
+
+            // Create order items one by one
+            for (let i = 0; i < validItems.length; i++) {
+                const item = validItems[i];
+                try {
+                    await axios.post('http://localhost:8000/api/order-items/', {
+                        order: createdOrderId,
+                        product: parseInt(item.product),
+                        quantity: parseInt(item.quantity),
+                        unit_price: parseFloat(item.price)
+                    });
+                } catch (itemError) {
+                    console.error(`Error creating order item ${i + 1}:`, itemError);
+                    // If any item fails, try to delete the order (cleanup)
+                    try {
+                        await axios.delete(`http://localhost:8000/api/orders/${createdOrderId}/`);
+                    } catch (deleteError) {
+                        console.error('Failed to cleanup order:', deleteError);
+                    }
+                    throw new Error(`Failed to add item ${i + 1}: ${itemError.response?.data?.detail || itemError.message}`);
+                }
             }
 
             setSuccess(true);
@@ -98,13 +153,30 @@ const OrderForm = ({ onOrderCreated }) => {
             setOrderItems([{ product: '', quantity: 1, price: 0 }]);
             
             if (onOrderCreated) {
-                onOrderCreated(orderId);
+                onOrderCreated(createdOrderId);
             }
 
             setTimeout(() => setSuccess(false), 3000);
         } catch (err) {
             console.error('Error creating order:', err);
-            setError(err.response?.data?.detail || 'Failed to create order');
+            let errorMessage = 'Failed to create order';
+            
+            if (err.response?.data) {
+                // Handle different error formats
+                if (err.response.data.order_number) {
+                    errorMessage = `Order Number: ${err.response.data.order_number[0]}`;
+                } else if (err.response.data.detail) {
+                    errorMessage = err.response.data.detail;
+                } else if (err.response.data.error) {
+                    errorMessage = err.response.data.error;
+                } else if (typeof err.response.data === 'string') {
+                    errorMessage = err.response.data;
+                }
+            } else if (err.message) {
+                errorMessage = err.message;
+            }
+            
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -129,16 +201,26 @@ const OrderForm = ({ onOrderCreated }) => {
             <form onSubmit={handleSubmit}>
                 <div style={{ marginBottom: '15px' }}>
                     <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                        Order Number:
+                        Order Number: *
                     </label>
                     <input
                         type="text"
                         value={orderNumber}
                         onChange={(e) => setOrderNumber(e.target.value)}
-                        style={{ padding: '8px', width: '100%', maxWidth: '300px', fontSize: '14px' }}
+                        style={{ 
+                            padding: '8px', 
+                            width: '100%', 
+                            maxWidth: '300px', 
+                            fontSize: '14px',
+                            border: '1px solid #ddd',
+                            borderRadius: '4px'
+                        }}
                         placeholder="e.g., ORD-001"
                         required
                     />
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+                        Enter a unique order number
+                    </div>
                 </div>
 
                 <h3>Order Items</h3>
@@ -150,16 +232,32 @@ const OrderForm = ({ onOrderCreated }) => {
                                 <select
                                     value={item.product}
                                     onChange={(e) => updateOrderItem(index, 'product', e.target.value)}
-                                    style={{ padding: '8px', width: '100%', fontSize: '14px' }}
+                                    style={{ 
+                                        padding: '8px', 
+                                        width: '100%', 
+                                        fontSize: '14px',
+                                        border: !item.product ? '2px solid #f44336' : '1px solid #ddd',
+                                        borderRadius: '4px'
+                                    }}
                                     required
                                 >
                                     <option value="">Select a product</option>
                                     {products.map(product => (
-                                        <option key={product.id} value={product.id}>
+                                        <option 
+                                            key={product.id} 
+                                            value={product.id}
+                                            disabled={product.stock_quantity === 0}
+                                        >
                                             {product.name} (${product.price}) - Stock: {product.stock_quantity}
+                                            {product.stock_quantity === 0 ? ' - OUT OF STOCK' : ''}
                                         </option>
                                     ))}
                                 </select>
+                                {!item.product && (
+                                    <div style={{ color: '#f44336', fontSize: '12px', marginTop: '2px' }}>
+                                        Product is required
+                                    </div>
+                                )}
                             </div>
                             
                             <div style={{ width: '120px' }}>
@@ -169,9 +267,20 @@ const OrderForm = ({ onOrderCreated }) => {
                                     min="1"
                                     value={item.quantity}
                                     onChange={(e) => updateOrderItem(index, 'quantity', parseInt(e.target.value) || 1)}
-                                    style={{ padding: '8px', width: '100%', fontSize: '14px' }}
+                                    style={{ 
+                                        padding: '8px', 
+                                        width: '100%', 
+                                        fontSize: '14px',
+                                        border: item.quantity <= 0 ? '2px solid #f44336' : '1px solid #ddd',
+                                        borderRadius: '4px'
+                                    }}
                                     required
                                 />
+                                {item.quantity <= 0 && (
+                                    <div style={{ color: '#f44336', fontSize: '11px', marginTop: '2px' }}>
+                                        Must be &gt; 0
+                                    </div>
+                                )}
                             </div>
                             
                             <div style={{ width: '120px' }}>

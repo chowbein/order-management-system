@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 import Dashboard from './Dashboard';
-import ProductList from './ProductList';
+import ProductManagement from './ProductManagement';
 import OrderForm from './OrderForm';
 import OrderDetails from './OrderDetails';
 import ActivityLog from './ActivityLog';
@@ -52,7 +52,7 @@ function App() {
 
       <div style={{ padding: '20px' }}>
         {activeTab === 'dashboard' && <Dashboard />}
-        {activeTab === 'products' && <ProductList />}
+        {activeTab === 'products' && <ProductManagement />}
         {activeTab === 'createOrder' && <OrderForm onOrderCreated={handleOrderCreated} />}
         {activeTab === 'orderDetails' && (
           <div>

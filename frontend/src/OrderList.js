@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from './apiConfig';
 import './OrderList.css';
+import Modal from './Modal';
+import OrderForm from './OrderForm';
 
 const OrderList = ({ selectedOrderId: initialSelectedId }) => {
     const [orders, setOrders] = useState([]);
@@ -12,6 +14,7 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
     const [actionLoading, setActionLoading] = useState(false);
     const [message, setMessage] = useState(null);
     const [editingItem, setEditingItem] = useState(null); // Tracks { id: itemId, quantity: newQuantity }
+    const [isCreateOrderModalOpen, setCreateOrderModalOpen] = useState(false);
 
     useEffect(() => {
         fetchOrders();
@@ -128,39 +131,23 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
 
     const getStatusStyle = (status) => `ol-status-badge ${status}`;
 
+    const handleOrderCreated = (newOrderId) => {
+        setCreateOrderModalOpen(false);
+        fetchOrders().then(() => {
+            // After fetching, find and select the newly created order
+            // This requires fetchOrders to resolve with the new list of orders or to update state correctly
+            // A slight delay might be needed if state update isn't immediate
+            setTimeout(() => {
+                const newOrder = orders.find(o => o.id === newOrderId);
+                if (newOrder) {
+                    setSelectedOrder(newOrder);
+                }
+            }, 500); // 500ms delay to allow state to propagate, can be optimized
+        });
+    };
+
     return (
         <div className="order-list-container">
-            {/* Order List and Search Panel */}
-            <div className="ol-list-panel">
-                <div className="ol-search-bar">
-                    <input
-                        type="text"
-                        placeholder="Search orders..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <div className="ol-list">
-                    {loading && <p style={{ padding: '15px' }}>Loading orders...</p>}
-                    {error && <p style={{ padding: '15px', color: 'red' }}>{error}</p>}
-                    {filteredOrders.map(order => (
-                        <div
-                            key={order.id}
-                            onClick={() => setSelectedOrder(order)}
-                            className={`ol-list-item ${selectedOrder?.id === order.id ? 'selected' : ''}`}
-                        >
-                            <div className="ol-list-item-info">
-                                <div className="order-number">{order.order_number}</div>
-                                <div className="order-date">
-                                    {new Date(order.created_at).toLocaleDateString()}
-                                </div>
-                            </div>
-                            <div className={getStatusStyle(order.status)}>{order.status}</div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
             {/* Order Details Panel */}
             <div className="ol-details-panel">
                 {selectedOrder ? (
@@ -260,11 +247,52 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
                     </>
                 ) : (
                     <div className="ol-details-placeholder">
-                        <div className="icon">←</div>
+                        <div className="icon">→</div>
                         <h3>Select an order to view details</h3>
                     </div>
                 )}
             </div>
+
+            {/* Order List and Search Panel */}
+            <div className="ol-list-panel">
+                <div className="ol-list-header">
+                    <h4>All Orders</h4>
+                    <button className="ol-create-btn" onClick={() => setCreateOrderModalOpen(true)}>
+                        + Create Order
+                    </button>
+                </div>
+                <div className="ol-search-bar">
+                    <input
+                        type="text"
+                        placeholder="Search orders..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="ol-list">
+                    {loading && <p style={{ padding: '15px' }}>Loading orders...</p>}
+                    {error && <p style={{ padding: '15px', color: 'red' }}>{error}</p>}
+                    {filteredOrders.map(order => (
+                        <div
+                            key={order.id}
+                            onClick={() => setSelectedOrder(order)}
+                            className={`ol-list-item ${selectedOrder?.id === order.id ? 'selected' : ''}`}
+                        >
+                            <div className="ol-list-item-info">
+                                <div className="order-number">{order.order_number}</div>
+                                <div className="order-date">
+                                    {new Date(order.created_at).toLocaleDateString()}
+                                </div>
+                            </div>
+                            <div className={getStatusStyle(order.status)}>{order.status}</div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <Modal isOpen={isCreateOrderModalOpen} onClose={() => setCreateOrderModalOpen(false)}>
+                <OrderForm onOrderCreated={handleOrderCreated} />
+            </Modal>
         </div>
     );
 };

@@ -10,6 +10,7 @@ const OrderForm = ({ onOrderCreated }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
         fetchProducts();
@@ -57,6 +58,7 @@ const OrderForm = ({ onOrderCreated }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitted(true);
         setLoading(true);
         setError(null);
         setSuccess(false);
@@ -153,6 +155,7 @@ const OrderForm = ({ onOrderCreated }) => {
             setSuccess(true);
             setOrderNumber('');
             setOrderItems([{ product: '', quantity: 1, price: 0 }]);
+            setSubmitted(false);
             
             if (onOrderCreated) {
                 onOrderCreated(createdOrderId);
@@ -227,7 +230,7 @@ const OrderForm = ({ onOrderCreated }) => {
                                     <select
                                         value={item.product}
                                         onChange={(e) => updateOrderItem(index, 'product', e.target.value)}
-                                        className={!item.product ? 'invalid' : ''}
+                                        className={submitted && !item.product ? 'invalid' : ''}
                                         required
                                     >
                                         <option value="">Select a product</option>
@@ -242,7 +245,7 @@ const OrderForm = ({ onOrderCreated }) => {
                                             </option>
                                         ))}
                                     </select>
-                                    {!item.product && (
+                                    {submitted && !item.product && (
                                         <div className="of-error-message">
                                             Product is required
                                         </div>

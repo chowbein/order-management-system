@@ -2,18 +2,11 @@ import React, { useState } from 'react';
 import './App.css';
 import Dashboard from './Dashboard';
 import ProductManagement from './ProductManagement';
-import OrderForm from './OrderForm';
 import OrderList from './OrderList';
 import ActivityLog from './ActivityLog';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedOrderId, setSelectedOrderId] = useState(null);
-
-  const handleOrderCreated = (orderId) => {
-    setSelectedOrderId(orderId);
-    setActiveTab('orderList');
-  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -21,10 +14,8 @@ function App() {
         return <Dashboard />;
       case 'products':
         return <ProductManagement />;
-      case 'createOrder':
-        return <OrderForm onOrderCreated={handleOrderCreated} />;
       case 'orderList':
-        return <OrderList selectedOrderId={selectedOrderId} />;
+        return <OrderList />;
       case 'activityLog':
         return <ActivityLog />;
       default:
@@ -50,12 +41,6 @@ function App() {
             onClick={() => setActiveTab('products')}
           >
             Products
-          </li>
-          <li
-            className={`sidebar-menu-item ${activeTab === 'createOrder' ? 'active' : ''}`}
-            onClick={() => setActiveTab('createOrder')}
-          >
-            Create Order
           </li>
           <li
             className={`sidebar-menu-item ${activeTab === 'orderList' ? 'active' : ''}`}

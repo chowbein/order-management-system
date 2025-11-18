@@ -1,6 +1,6 @@
 .order-list-container {
     display: grid;
-    grid-template-columns: 400px 1fr;
+    grid-template-columns: 1fr 400px;
     gap: 20px;
     height: calc(100vh - 150px); /* Adjust based on your layout */
   }
@@ -27,6 +27,30 @@
     box-sizing: border-box;
   }
   
+  .ol-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-bottom: 1px solid #ddd;
+    background-color: #f9f9f9;
+  }
+  
+  .ol-list-header h4 {
+    margin: 0;
+  }
+  
+  .ol-create-btn {
+    padding: 8px 15px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+  }
+
   .ol-list {
     overflow-y: auto;
     flex: 1;

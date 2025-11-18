@@ -23,6 +23,30 @@ A full-stack order management application built with Django REST Framework and R
 
 ---
 
+## Screenshots
+
+### Dashboard
+Real-time statistics and low stock alerts:
+
+![Dashboard](screenshots/dashboard.png)
+
+### Product Management
+Full CRUD operations with inventory tracking:
+
+![Product Management](screenshots/products.png)
+
+### Order Management
+Create and manage orders with stock validation:
+
+![Order Details](screenshots/orders.png)
+
+### Activity Log
+Unified timeline of all system activities:
+
+![Activity Log](screenshots/activity-log.png)
+
+---
+
 ## Tech Stack
 
 This project uses a classic and robust combination for full-stack web applications. Django and Django REST Framework provide a powerful and secure backend, ideal for rapid development of the RESTful API needed for order and inventory management. React is used for the frontend to create a dynamic and responsive user interface, allowing for a seamless user experience especially considering all the live updates expected from the logs, orders, and products (with its stocks). SQLite is used as a simple and file-based database, ideal for development and demonstration purposes.

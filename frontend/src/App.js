@@ -3,7 +3,7 @@ import './App.css';
 import Dashboard from './Dashboard';
 import ProductManagement from './ProductManagement';
 import OrderForm from './OrderForm';
-import OrderDetails from './OrderDetails';
+import OrderList from './OrderList';
 import ActivityLog from './ActivityLog';
 
 function App() {
@@ -12,7 +12,7 @@ function App() {
 
   const handleOrderCreated = (orderId) => {
     setSelectedOrderId(orderId);
-    setActiveTab('orderDetails');
+    setActiveTab('orderList');
   };
 
   const tabStyle = (tabName) => ({
@@ -42,8 +42,8 @@ function App() {
         <button onClick={() => setActiveTab('createOrder')} style={tabStyle('createOrder')}>
           Create Order
         </button>
-        <button onClick={() => setActiveTab('orderDetails')} style={tabStyle('orderDetails')}>
-          Order Details
+        <button onClick={() => setActiveTab('orderList')} style={tabStyle('orderList')}>
+          Orders
         </button>
         <button onClick={() => setActiveTab('activityLog')} style={tabStyle('activityLog')}>
           Activity Log
@@ -54,27 +54,7 @@ function App() {
         {activeTab === 'dashboard' && <Dashboard />}
         {activeTab === 'products' && <ProductManagement />}
         {activeTab === 'createOrder' && <OrderForm onOrderCreated={handleOrderCreated} />}
-        {activeTab === 'orderDetails' && (
-          <div>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ marginRight: '10px', fontWeight: 'bold' }}>Enter Order ID:</label>
-              <input
-                type="number"
-                value={selectedOrderId || ''}
-                onChange={(e) => setSelectedOrderId(e.target.value)}
-                placeholder="e.g., 1"
-                style={{ padding: '8px', fontSize: '14px', width: '150px' }}
-              />
-            </div>
-            {selectedOrderId ? (
-              <OrderDetails orderId={selectedOrderId} />
-            ) : (
-              <div style={{ padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
-                Please enter an order ID to view details
-              </div>
-            )}
-          </div>
-        )}
+        {activeTab === 'orderList' && <OrderList selectedOrderId={selectedOrderId} />}
         {activeTab === 'activityLog' && <ActivityLog />}
       </div>
     </div>

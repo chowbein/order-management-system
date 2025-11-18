@@ -17,7 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from api.views import ProductViewSet, OrderViewSet, OrderItemViewSet, InventoryLogViewSet, dashboard_statistics
+from api.views import (
+    ProductViewSet, OrderViewSet, OrderItemViewSet, 
+    InventoryLogViewSet, dashboard_statistics, unified_activity_log
+)
 
 # Create a router and register our viewsets with it
 router = DefaultRouter()
@@ -30,4 +33,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     path('api/dashboard/', dashboard_statistics, name='dashboard-statistics'),
+    path('api/activity-log/', unified_activity_log, name='unified-activity-log'),
 ]

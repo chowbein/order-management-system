@@ -67,3 +67,17 @@ class InventoryLog(models.Model):
 
     def __str__(self):
         return f"{self.change_type} of {abs(self.quantity_change)} for {self.product.name}"
+
+
+class OrderActivity(models.Model):
+    """Log for order status changes"""
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='activities')
+    activity_type = models.CharField(max_length=50)  # e.g., 'Order Created', 'Order Confirmed'
+    description = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"Order {self.order.order_number} - {self.activity_type}"

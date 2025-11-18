@@ -4,8 +4,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django.db import transaction
 from django.db.models import Sum, Q
-from .models import Product, Order, OrderItem, InventoryLog
-from .serializers import ProductSerializer, OrderSerializer, OrderItemSerializer, InventoryLogSerializer
+from .models import Product, Order, OrderItem, InventoryLog, OrderActivity
+from .serializers import (
+    ProductSerializer, OrderSerializer, OrderItemSerializer, 
+    InventoryLogSerializer, OrderActivitySerializer
+)
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -26,6 +29,15 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [AllowAny]  # Change this to appropriate permissions in production
+
+    def perform_create(self, serializer):
+        """Log order creation activity."""
+        order = serializer.save()
+        OrderActivity.objects.create(
+            order=order,
+            activity_type="Order Created",
+            description=f"Order {order.order_number} was created with status '{order.status}'."
+        )
 
     @action(detail=True, methods=['post'])
     @transaction.atomic
@@ -85,6 +97,13 @@ class OrderViewSet(viewsets.ModelViewSet):
         order.status = 'confirmed'
         order.save()
 
+        # Log this activity
+        OrderActivity.objects.create(
+            order=order,
+            activity_type="Order Confirmed",
+            description=f"Order status changed to 'confirmed'."
+        )
+
         # Serialize and return the updated order
         serializer = self.get_serializer(order)
         return Response(
@@ -133,6 +152,13 @@ class OrderViewSet(viewsets.ModelViewSet):
         # Update order status
         order.status = 'cancelled'
         order.save()
+
+        # Log this activity
+        OrderActivity.objects.create(
+            order=order,
+            activity_type="Order Cancelled",
+            description=f"Order status changed to 'cancelled'."
+        )
 
         # Serialize and return the updated order
         serializer = self.get_serializer(order)
@@ -191,3 +217,45 @@ def dashboard_statistics(request):
         'total_revenue': total_revenue,
         'low_stock_products': list(low_stock_products)
     })
+
+
+@api_view(['GET'])
+def unified_activity_log(request):
+    """
+    Combines InventoryLog and OrderActivity into a single, sorted timeline.
+    """
+    inventory_logs = InventoryLog.objects.all().select_related('product')
+    order_activities = OrderActivity.objects.all().select_related('order')
+
+    # Add a 'log_type' to each item to differentiate on the frontend
+    combined_log = []
+    
+    for log in inventory_logs:
+        combined_log.append({
+            'log_type': 'inventory',
+            'timestamp': log.created_at,
+            'id': f"inv-{log.id}",
+            'details': {
+                'product_name': log.product.name,
+                'change_type': log.change_type,
+                'quantity_change': log.quantity_change,
+                'reason': log.reason,
+            }
+        })
+
+    for activity in order_activities:
+        combined_log.append({
+            'log_type': 'order',
+            'timestamp': activity.timestamp,
+            'id': f"ord-{activity.id}",
+            'details': {
+                'order_number': activity.order.order_number,
+                'activity_type': activity.activity_type,
+                'description': activity.description,
+            }
+        })
+
+    # Sort the combined log by timestamp, newest first
+    sorted_log = sorted(combined_log, key=lambda x: x['timestamp'], reverse=True)
+
+    return Response(sorted_log)

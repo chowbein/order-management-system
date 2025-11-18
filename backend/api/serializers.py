@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Order, OrderItem, InventoryLog
+from .models import Product, Order, OrderItem, InventoryLog, OrderActivity
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -39,4 +39,11 @@ class InventoryLogSerializer(serializers.ModelSerializer):
         model = InventoryLog
         fields = ['id', 'product', 'product_name', 'change_type', 'quantity_change', 'reason', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+
+class OrderActivitySerializer(serializers.ModelSerializer):
+    """Serializer for the OrderActivity model"""
+    class Meta:
+        model = OrderActivity
+        fields = ['id', 'activity_type', 'description', 'timestamp']
 

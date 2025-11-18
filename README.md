@@ -92,12 +92,12 @@ cd order-management-system
 **Access the application:**
 - http://localhost:3000
 
-📖 **For detailed setup instructions, troubleshooting, and testing guides, see [setup-instructions.md](setup-instructions.md)**
-
 
 ---
 
 ## Challenges Faced & Solutions
 
+This entire project took ~9 hours to build and just like the first, one of the biggest challenges faced was the time constraint especially this time where the requirements were much stricter in contrast to the first where I was being allowed the freedom to creatively develop the app in my own way. It was because of this that I had to carefully manage my time to ensure that each feature (Inventory, Orders, and Logs) were properly set up especially considering that these three all interact with each other. The approach I used to address this was to prioritize setting up the foundations of the app first ensuring the backend logic and data structure are solid before building the user interface. This component-based approach allowed me to build and test each piece independently before integrating them, which was crucial given the time constraints. The modularized code structure also proved invaluable for debugging—when issues arose, I could quickly isolate which component or API endpoint was causing the problem, making fixes significantly faster and saving considerable time. It is only after this that I tried to refine and fix the small bugs and implement the styling (CSS) which I thought could be done simultaneously with each other. 
 
+Other than this, another key challenge I faced was understanding how the edge cases worked and making sure (through testing) the common ones are handled properly. One example of this was when I discovered that adding or editing a product from the inventory didn't reflect on the activity logs as the initial code set up only considered changes in the orders (whether it was confirmed or cancelled). Another was when I tried to test this fix only to discover that deleting a product also deleted all its logs. These cases during testing are always concerning as it makes you think twice about other user flows or interactions that you didn't consider could break the logic of the app. The key to adressing this was to understand the perspective of the user. Even if I had more time, it wouldn't be practical to go through every possible use case a product could have. Because of this, you need to only consider what the user is likely to do with your product and understand what scenarios they could be facing when using it. This was key for me as thinking about it as a user-first product it made it clear what edge cases to prioritize and work on.
 

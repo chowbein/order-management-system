@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from './apiConfig';
+import './OrderList.css';
 
 const OrderList = ({ selectedOrderId: initialSelectedId }) => {
     const [orders, setOrders] = useState([]);
@@ -125,85 +126,56 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
         );
     });
 
-    const getStatusStyle = (status) => {
-        const styles = {
-            pending: { backgroundColor: '#fff3cd', color: '#856404' },
-            confirmed: { backgroundColor: '#d4edda', color: '#155724' },
-            cancelled: { backgroundColor: '#f8d7da', color: '#721c24' }
-        };
-        return { 
-            ...styles[status], 
-            padding: '4px 12px', 
-            borderRadius: '12px', 
-            fontWeight: 'bold',
-            fontSize: '12px',
-            textTransform: 'uppercase'
-        };
-    };
+    const getStatusStyle = (status) => `ol-status-badge ${status}`;
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '20px', height: 'calc(100vh - 150px)' }}>
+        <div className="order-list-container">
             {/* Order List and Search Panel */}
-            <div style={{ border: '1px solid #ddd', borderRadius: '8px', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: '15px', borderBottom: '1px solid #ddd' }}>
+            <div className="ol-list-panel">
+                <div className="ol-search-bar">
                     <input
                         type="text"
                         placeholder="Search orders..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ccc' }}
                     />
                 </div>
-                <div style={{ overflowY: 'auto', flex: 1 }}>
+                <div className="ol-list">
                     {loading && <p style={{ padding: '15px' }}>Loading orders...</p>}
                     {error && <p style={{ padding: '15px', color: 'red' }}>{error}</p>}
                     {filteredOrders.map(order => (
                         <div
                             key={order.id}
                             onClick={() => setSelectedOrder(order)}
-                            style={{
-                                padding: '15px',
-                                borderBottom: '1px solid #eee',
-                                cursor: 'pointer',
-                                backgroundColor: selectedOrder?.id === order.id ? '#e3f2fd' : 'transparent',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center'
-                            }}
+                            className={`ol-list-item ${selectedOrder?.id === order.id ? 'selected' : ''}`}
                         >
-                            <div>
-                                <div style={{ fontWeight: 'bold' }}>{order.order_number}</div>
-                                <div style={{ fontSize: '12px', color: '#666' }}>
+                            <div className="ol-list-item-info">
+                                <div className="order-number">{order.order_number}</div>
+                                <div className="order-date">
                                     {new Date(order.created_at).toLocaleDateString()}
                                 </div>
                             </div>
-                            <div style={getStatusStyle(order.status)}>{order.status}</div>
+                            <div className={getStatusStyle(order.status)}>{order.status}</div>
                         </div>
                     ))}
                 </div>
             </div>
 
             {/* Order Details Panel */}
-            <div style={{ border: '1px solid #ddd', borderRadius: '8px', overflowY: 'auto', padding: '20px' }}>
+            <div className="ol-details-panel">
                 {selectedOrder ? (
                     <>
                         {message && (
-                            <div style={{
-                                padding: '10px',
-                                backgroundColor: message.type === 'success' ? '#e8f5e9' : '#ffebee',
-                                color: message.type === 'success' ? '#2e7d32' : '#c62828',
-                                marginBottom: '15px',
-                                borderRadius: '4px'
-                            }}>
+                            <div className={`ol-message ${message.type}`}>
                                 {message.text}
                             </div>
                         )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div className="ol-details-header">
                             <h2>Order Details</h2>
-                            <span style={getStatusStyle(selectedOrder.status)}>{selectedOrder.status}</span>
+                            <span className={getStatusStyle(selectedOrder.status)}>{selectedOrder.status}</span>
                         </div>
                         
-                        <div style={{ backgroundColor: '#f5f5f5', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+                        <div className="ol-details-summary">
                             <p><strong>Order Number:</strong> {selectedOrder.order_number}</p>
                             <p><strong>Total Amount:</strong> ₱{parseFloat(selectedOrder.total_amount).toFixed(2)}</p>
                             <p><strong>Created At:</strong> {new Date(selectedOrder.created_at).toLocaleString()}</p>
@@ -211,14 +183,14 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
 
                         <h3>Order Items</h3>
                         {selectedOrder.items && selectedOrder.items.length > 0 ? (
-                            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
+                            <table className="ol-details-items-table">
                                 <thead>
-                                    <tr style={{ backgroundColor: '#e0e0e0' }}>
-                                        <th style={{ padding: '12px', textAlign: 'left' }}>Product</th>
-                                        <th style={{ padding: '12px', textAlign: 'center' }}>Quantity</th>
-                                        <th style={{ padding: '12px', textAlign: 'right' }}>Unit Price</th>
-                                        <th style={{ padding: '12px', textAlign: 'right' }}>Subtotal</th>
-                                        <th style={{ padding: '12px', textAlign: 'center' }}>Actions</th>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th className="center-align">Quantity</th>
+                                        <th className="right-align">Unit Price</th>
+                                        <th className="right-align">Subtotal</th>
+                                        <th className="center-align">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -227,33 +199,33 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
                                         return isEditing ? (
                                             <tr key={item.id}>
                                                 <td>{item.product_name}</td>
-                                                <td style={{ textAlign: 'center' }}>
+                                                <td className="center-align">
                                                     <input
                                                         type="number"
                                                         value={editingItem.quantity}
                                                         onChange={(e) => setEditingItem({ ...editingItem, quantity: parseInt(e.target.value) })}
-                                                        style={{ width: '70px', padding: '5px', textAlign: 'center' }}
+                                                        className="ol-item-edit-input"
                                                         min="0"
                                                     />
                                                 </td>
-                                                <td style={{ textAlign: 'right' }}>₱{parseFloat(item.unit_price).toFixed(2)}</td>
-                                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
+                                                <td className="right-align">₱{parseFloat(item.unit_price).toFixed(2)}</td>
+                                                <td className="right-align bold">
                                                     ₱{(parseFloat(item.unit_price) * editingItem.quantity).toFixed(2)}
                                                 </td>
-                                                <td style={{ textAlign: 'center' }}>
+                                                <td className="center-align ol-item-edit-actions">
                                                     <button onClick={handleUpdateItem} disabled={actionLoading}>Save</button>
-                                                    <button onClick={() => setEditingItem(null)} style={{ marginLeft: '5px' }}>Cancel</button>
+                                                    <button onClick={() => setEditingItem(null)}>Cancel</button>
                                                 </td>
                                             </tr>
                                         ) : (
                                             <tr key={item.id}>
                                                 <td>{item.product_name}</td>
-                                                <td style={{ textAlign: 'center' }}>{item.quantity}</td>
-                                                <td style={{ textAlign: 'right' }}>₱{parseFloat(item.unit_price).toFixed(2)}</td>
-                                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
+                                                <td className="center-align">{item.quantity}</td>
+                                                <td className="right-align">₱{parseFloat(item.unit_price).toFixed(2)}</td>
+                                                <td className="right-align bold">
                                                     ₱{(parseFloat(item.unit_price) * item.quantity).toFixed(2)}
                                                 </td>
-                                                <td style={{ textAlign: 'center' }}>
+                                                <td className="center-align">
                                                     {selectedOrder.status === 'confirmed' && (
                                                         <button onClick={() => setEditingItem({ id: item.id, quantity: item.quantity })}>
                                                             Edit
@@ -269,27 +241,27 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
                             <p>No items in this order</p>
                         )}
                         
-                        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                        <div className="ol-details-actions">
                             <button
                                 onClick={() => handleAction('confirm')}
                                 disabled={actionLoading || selectedOrder.status !== 'pending'}
-                                style={{ padding: '12px 30px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: actionLoading || selectedOrder.status !== 'pending' ? 0.5 : 1 }}
+                                className="ol-action-btn confirm"
                             >
                                 Confirm Order
                             </button>
                             <button
                                 onClick={() => handleAction('cancel')}
                                 disabled={actionLoading || selectedOrder.status === 'cancelled'}
-                                style={{ padding: '12px 30px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: actionLoading || selectedOrder.status === 'cancelled' ? 0.5 : 1 }}
+                                className="ol-action-btn cancel"
                             >
                                 Cancel Order
                             </button>
                         </div>
                     </>
                 ) : (
-                    <div style={{ textAlign: 'center', padding: '50px', color: '#666' }}>
-                        <div style={{ fontSize: '48px', marginBottom: '10px' }}>←</div>
-                        <h3 style={{ margin: 0 }}>Select an order to view details</h3>
+                    <div className="ol-details-placeholder">
+                        <div className="icon">←</div>
+                        <h3>Select an order to view details</h3>
                     </div>
                 )}
             </div>

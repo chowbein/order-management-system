@@ -1,0 +1,222 @@
+.order-list-container {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 20px;
+    height: calc(100vh - 150px); /* Adjust based on your layout */
+  }
+  
+  .ol-list-panel {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .ol-search-bar {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .ol-search-bar input {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+  }
+  
+  .ol-list {
+    overflow-y: auto;
+    flex: 1;
+  }
+  
+  .ol-list-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+  }
+  
+  .ol-list-item:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .ol-list-item.selected {
+    background-color: #e3f2fd;
+  }
+  
+  .ol-list-item-info .order-number {
+    font-weight: bold;
+  }
+  
+  .ol-list-item-info .order-date {
+    font-size: 12px;
+    color: #666;
+  }
+  
+  .ol-details-panel {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  
+  .ol-details-placeholder {
+    text-align: center;
+    padding: 50px;
+    color: #666;
+  }
+  
+  .ol-details-placeholder .icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+  }
+  
+  .ol-details-placeholder h3 {
+    margin: 0;
+  }
+  
+  .ol-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .ol-details-summary {
+    background-color: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  
+  .ol-details-summary p {
+    margin: 5px 0;
+  }
+  
+  .ol-details-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  .ol-details-items-table thead tr {
+    background-color: #e0e0e0;
+  }
+  
+  .ol-details-items-table th,
+  .ol-details-items-table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .ol-details-items-table th {
+    text-align: left;
+  }
+  
+  .ol-details-items-table td {
+    text-align: left;
+  }
+  
+  .ol-details-items-table .center-align {
+    text-align: center;
+  }
+  
+  .ol-details-items-table .right-align {
+    text-align: right;
+  }
+  
+  .ol-details-items-table .bold {
+    font-weight: bold;
+  }
+  
+  .ol-details-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  
+  .ol-action-btn {
+    padding: 12px 30px;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .ol-action-btn.confirm {
+    background-color: #4CAF50;
+  }
+  
+  .ol-action-btn.cancel {
+    background-color: #f44336;
+  }
+  
+  .ol-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .ol-status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+  
+  .ol-status-badge.pending {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+  
+  .ol-status-badge.confirmed {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .ol-status-badge.cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+  
+  .ol-item-edit-input {
+    width: 70px;
+    padding: 5px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .ol-item-edit-actions button {
+    margin-left: 5px;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .ol-item-edit-actions button:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .ol-message {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+  }
+  
+  .ol-message.success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .ol-message.error {
+    background-color: #ffebee;
+    color: #c62828;
+  }

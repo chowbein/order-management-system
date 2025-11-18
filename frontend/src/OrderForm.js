@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from './apiConfig';
+import './OrderForm.css';
 
 const OrderForm = ({ onOrderCreated }) => {
     const [products, setProducts] = useState([]);
@@ -184,181 +185,137 @@ const OrderForm = ({ onOrderCreated }) => {
     };
 
     return (
-        <div style={{ padding: '20px', maxWidth: '800px' }}>
+        <div className="order-form-container">
             <h2>Create New Order</h2>
             
             {error && (
-                <div style={{ padding: '10px', backgroundColor: '#ffebee', color: '#c62828', marginBottom: '15px', borderRadius: '4px' }}>
+                <div className="of-message error">
                     {error}
                 </div>
             )}
             
             {success && (
-                <div style={{ padding: '10px', backgroundColor: '#e8f5e9', color: '#2e7d32', marginBottom: '15px', borderRadius: '4px' }}>
+                <div className="of-message success">
                     Order created successfully!
                 </div>
             )}
 
             <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                <div className="of-form-group">
+                    <label>
                         Order Number: *
                     </label>
                     <input
                         type="text"
                         value={orderNumber}
                         onChange={(e) => setOrderNumber(e.target.value)}
-                        style={{ 
-                            padding: '8px', 
-                            width: '100%', 
-                            maxWidth: '300px', 
-                            fontSize: '14px',
-                            border: '1px solid #ddd',
-                            borderRadius: '4px'
-                        }}
                         placeholder="e.g., ORD-001"
                         required
                     />
-                    <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+                    <div className="field-hint">
                         Enter a unique order number
                     </div>
                 </div>
 
-                <h3>Order Items</h3>
-                {orderItems.map((item, index) => (
-                    <div key={index} style={{ marginBottom: '15px', padding: '15px', border: '1px solid #ddd', borderRadius: '4px' }}>
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                            <div style={{ flex: '1', minWidth: '200px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px' }}>Product:</label>
-                                <select
-                                    value={item.product}
-                                    onChange={(e) => updateOrderItem(index, 'product', e.target.value)}
-                                    style={{ 
-                                        padding: '8px', 
-                                        width: '100%', 
-                                        fontSize: '14px',
-                                        border: !item.product ? '2px solid #f44336' : '1px solid #ddd',
-                                        borderRadius: '4px'
-                                    }}
-                                    required
-                                >
-                                    <option value="">Select a product</option>
-                                    {products.map(product => (
-                                        <option 
-                                            key={product.id} 
-                                            value={product.id}
-                                            disabled={product.stock_quantity === 0}
-                                        >
-                                            {product.name} (₱{product.price}) - Stock: {product.stock_quantity}
-                                            {product.stock_quantity === 0 ? ' - OUT OF STOCK' : ''}
-                                        </option>
-                                    ))}
-                                </select>
-                                {!item.product && (
-                                    <div style={{ color: '#f44336', fontSize: '12px', marginTop: '2px' }}>
-                                        Product is required
-                                    </div>
-                                )}
-                            </div>
-                            
-                            <div style={{ width: '120px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px' }}>Quantity:</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    value={item.quantity}
-                                    onChange={(e) => updateOrderItem(index, 'quantity', parseInt(e.target.value) || 0)}
-                                    style={{ 
-                                        padding: '8px', 
-                                        width: '100%', 
-                                        fontSize: '14px',
-                                        border: item.quantity < 0 ? '2px solid #f44336' : '1px solid #ddd',
-                                        borderRadius: '4px'
-                                    }}
-                                    required
-                                />
-                                {item.quantity < 0 && (
-                                    <div style={{ color: '#f44336', fontSize: '11px', marginTop: '2px' }}>
-                                        Cannot be negative
-                                    </div>
-                                )}
-                            </div>
-                            
-                            <div style={{ width: '120px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px' }}>Price:</label>
-                                <input
-                                    type="text"
-                                    value={`₱${item.price}`}
-                                    readOnly
-                                    style={{ padding: '8px', width: '100%', fontSize: '14px', backgroundColor: '#f5f5f5' }}
-                                />
-                            </div>
+                <div className="of-items-container">
+                    <h3>Order Items</h3>
+                    {orderItems.map((item, index) => (
+                        <div key={index} className="of-item">
+                            <div className="of-item-row">
+                                <div className="of-item-field product-field">
+                                    <label>Product:</label>
+                                    <select
+                                        value={item.product}
+                                        onChange={(e) => updateOrderItem(index, 'product', e.target.value)}
+                                        className={!item.product ? 'invalid' : ''}
+                                        required
+                                    >
+                                        <option value="">Select a product</option>
+                                        {products.map(product => (
+                                            <option 
+                                                key={product.id} 
+                                                value={product.id}
+                                                disabled={product.stock_quantity === 0}
+                                            >
+                                                {product.name} (₱{product.price}) - Stock: {product.stock_quantity}
+                                                {product.stock_quantity === 0 ? ' - OUT OF STOCK' : ''}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {!item.product && (
+                                        <div className="of-error-message">
+                                            Product is required
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="of-item-field quantity-field">
+                                    <label>Quantity:</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={item.quantity}
+                                        onChange={(e) => updateOrderItem(index, 'quantity', parseInt(e.target.value) || 0)}
+                                        className={item.quantity < 0 ? 'invalid' : ''}
+                                        required
+                                    />
+                                    {item.quantity < 0 && (
+                                        <div className="of-error-message">
+                                            Cannot be negative
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="of-item-field price-field">
+                                    <label>Price:</label>
+                                    <input
+                                        type="text"
+                                        value={`₱${item.price}`}
+                                        readOnly
+                                    />
+                                </div>
 
-                            <div style={{ width: '120px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px' }}>Subtotal:</label>
-                                <input
-                                    type="text"
-                                    value={`₱${(item.price * item.quantity).toFixed(2)}`}
-                                    readOnly
-                                    style={{ padding: '8px', width: '100%', fontSize: '14px', backgroundColor: '#f5f5f5', fontWeight: 'bold' }}
-                                />
+                                <div className="of-item-field subtotal-field">
+                                    <label>Subtotal:</label>
+                                    <input
+                                        type="text"
+                                        value={`₱${(item.price * item.quantity).toFixed(2)}`}
+                                        readOnly
+                                        style={{ fontWeight: 'bold' }}
+                                    />
+                                </div>
+                                
+                                <div className="of-item-actions">
+                                    <button
+                                        type="button"
+                                        onClick={() => removeOrderItem(index)}
+                                        disabled={orderItems.length === 1}
+                                        className="of-remove-item-btn"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
                             </div>
-                            
-                            <button
-                                type="button"
-                                onClick={() => removeOrderItem(index)}
-                                disabled={orderItems.length === 1}
-                                style={{
-                                    padding: '8px 12px',
-                                    backgroundColor: '#f44336',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: orderItems.length === 1 ? 'not-allowed' : 'pointer',
-                                    opacity: orderItems.length === 1 ? 0.5 : 1,
-                                    marginTop: '20px'
-                                }}
-                            >
-                                Remove
-                            </button>
                         </div>
-                    </div>
-                ))}
+                    ))}
 
-                <button
-                    type="button"
-                    onClick={addOrderItem}
-                    style={{
-                        padding: '10px 20px',
-                        backgroundColor: '#2196F3',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        marginBottom: '20px'
-                    }}
-                >
-                    + Add Item
-                </button>
+                    <button
+                        type="button"
+                        onClick={addOrderItem}
+                        className="of-add-item-btn"
+                    >
+                        + Add Item
+                    </button>
+                </div>
 
-                <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
-                    <h3 style={{ margin: '0 0 10px 0' }}>Total: ₱{calculateTotal()}</h3>
+                <div className="of-total-container">
+                    <h3>Total: ₱{calculateTotal()}</h3>
                 </div>
 
                 <button
                     type="submit"
                     disabled={loading}
-                    style={{
-                        padding: '12px 30px',
-                        backgroundColor: loading ? '#ccc' : '#4CAF50',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        fontSize: '16px',
-                        fontWeight: 'bold',
-                        marginTop: '20px'
-                    }}
+                    className="of-submit-btn"
                 >
                     {loading ? 'Creating Order...' : 'Create Order'}
                 </button>

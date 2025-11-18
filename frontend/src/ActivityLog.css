@@ -1,0 +1,96 @@
+.activity-log-container {
+    padding: 20px;
+    max-width: 1200px;
+  }
+  
+  .al-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .al-header h2 {
+    margin: 0;
+  }
+  
+  .al-controls {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .al-controls select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  
+  .al-controls button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    cursor: pointer;
+  }
+  
+  .al-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .al-table thead tr {
+    background-color: #e0e0e0;
+  }
+  
+  .al-table th,
+  .al-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .al-table th:last-child,
+  .al-table td:last-child {
+    text-align: right;
+  }
+  
+  .al-timestamp {
+    color: #666;
+  }
+  
+  .al-log-change {
+    font-weight: bold;
+  }
+  
+  .al-log-change.addition {
+    color: #4CAF50;
+  }
+  
+  .al-log-change.deduction {
+    color: #f44336;
+  }
+  
+  .al-log-activity {
+    font-weight: bold;
+  }
+  
+  .al-log-activity.order {
+    color: #2196F3;
+  }
+  
+  .al-log-activity.inventory-add {
+    color: #4CAF50;
+  }
+  
+  .al-log-activity.inventory-deduct {
+    color: #f44336;
+  }
+  
+  .no-activity-message {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+  }

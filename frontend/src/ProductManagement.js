@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from './apiConfig';
+import './ProductManagement.css';
 
 const ProductManagement = () => {
     const [products, setProducts] = useState([]);
@@ -118,7 +119,7 @@ const ProductManagement = () => {
     };
 
     if (loading) {
-        return <div style={{ padding: '20px' }}>Loading products...</div>;
+        return <div className="loading-message">Loading products...</div>;
     }
 
     const filteredProducts = products.filter(product =>
@@ -126,28 +127,19 @@ const ProductManagement = () => {
     );
 
     return (
-        <div style={{ padding: '20px', maxWidth: '1200px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ margin: 0 }}>Product Management</h2>
-                <div style={{ display: 'flex', gap: '15px' }}>
+        <div className="product-management">
+            <div className="pm-header">
+                <h2>Product Management</h2>
+                <div className="pm-header-actions">
                     <input
                         type="text"
                         placeholder="Search by product name..."
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ padding: '10px', fontSize: '14px', width: '250px' }}
+                        className="pm-search-input"
                     />
                     <button
                         onClick={handleAddNew}
-                        style={{
-                            padding: '10px 20px',
-                            backgroundColor: '#4CAF50',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            fontWeight: 'bold'
-                        }}
+                        className="pm-add-btn"
                     >
                         + Add New Product
                     </button>
@@ -155,37 +147,25 @@ const ProductManagement = () => {
             </div>
 
             {message && (
-                <div style={{
-                    padding: '10px',
-                    backgroundColor: message.type === 'success' ? '#e8f5e9' : '#ffebee',
-                    color: message.type === 'success' ? '#2e7d32' : '#c62828',
-                    marginBottom: '15px',
-                    borderRadius: '4px'
-                }}>
+                <div className={`pm-message ${message.type}`}>
                     {message.text}
                 </div>
             )}
 
             {error && (
-                <div style={{ padding: '20px', color: '#c62828', backgroundColor: '#ffebee', borderRadius: '4px', marginBottom: '20px' }}>
+                <div className="pm-message error">
                     {error}
                 </div>
             )}
 
             {/* Add/Edit Form */}
             {showForm && (
-                <div style={{
-                    backgroundColor: '#f5f5f5',
-                    padding: '20px',
-                    borderRadius: '8px',
-                    marginBottom: '30px',
-                    border: '2px solid #2196F3'
-                }}>
+                <div className="pm-form-container">
                     <h3>{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
                     <form onSubmit={handleSubmit}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                        <div className="pm-form-grid">
+                            <div className="pm-form-field">
+                                <label>
                                     Product Name *
                                 </label>
                                 <input
@@ -194,13 +174,12 @@ const ProductManagement = () => {
                                     value={formData.name}
                                     onChange={handleInputChange}
                                     required
-                                    style={{ padding: '10px', width: '100%', fontSize: '14px', borderRadius: '4px', border: '1px solid #ddd' }}
                                     placeholder="e.g., Laptop"
                                 />
                             </div>
                             
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                            <div className="pm-form-field">
+                                <label>
                                     Price *
                                 </label>
                                 <input
@@ -211,14 +190,13 @@ const ProductManagement = () => {
                                     required
                                     step="0.01"
                                     min="0"
-                                    style={{ padding: '10px', width: '100%', fontSize: '14px', borderRadius: '4px', border: '1px solid #ddd' }}
                                     placeholder="e.g., 29.99"
                                 />
                             </div>
                         </div>
 
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                        <div className="pm-form-field">
+                            <label>
                                 Description
                             </label>
                             <textarea
@@ -226,13 +204,12 @@ const ProductManagement = () => {
                                 value={formData.description}
                                 onChange={handleInputChange}
                                 rows="3"
-                                style={{ padding: '10px', width: '100%', fontSize: '14px', borderRadius: '4px', border: '1px solid #ddd' }}
                                 placeholder="Product description..."
                             />
                         </div>
 
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                        <div className="pm-form-field">
+                            <label>
                                 Stock Quantity *
                             </label>
                             <input
@@ -242,39 +219,22 @@ const ProductManagement = () => {
                                 onChange={handleInputChange}
                                 required
                                 min="0"
-                                style={{ padding: '10px', width: '200px', fontSize: '14px', borderRadius: '4px', border: '1px solid #ddd' }}
                                 placeholder="e.g., 100"
+                                style={{ width: '200px' }}
                             />
                         </div>
 
-                        <div style={{ display: 'flex', gap: '10px' }}>
+                        <div className="pm-form-actions">
                             <button
                                 type="submit"
-                                style={{
-                                    padding: '10px 30px',
-                                    backgroundColor: '#2196F3',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '16px',
-                                    fontWeight: 'bold'
-                                }}
+                                className="pm-submit-btn"
                             >
                                 {editingProduct ? 'Update Product' : 'Create Product'}
                             </button>
                             <button
                                 type="button"
                                 onClick={resetForm}
-                                style={{
-                                    padding: '10px 30px',
-                                    backgroundColor: '#757575',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '16px'
-                                }}
+                                className="pm-cancel-btn"
                             >
                                 Cancel
                             </button>
@@ -284,77 +244,49 @@ const ProductManagement = () => {
             )}
 
             {/* Products Table */}
-            <div style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
+            <div className="pm-table-container">
                 {filteredProducts.length === 0 ? (
-                    <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
-                        <div style={{ fontSize: '48px', marginBottom: '10px' }}>📦</div>
-                        <div style={{ fontSize: '18px' }}>No products found</div>
-                        <div style={{ fontSize: '14px', marginTop: '5px' }}>Click "Add New Product" to get started</div>
+                    <div className="no-products-message">
+                        <div className="icon">📦</div>
+                        <div className="title">No products found</div>
+                        <div className="subtitle">Click "Add New Product" to get started</div>
                     </div>
                 ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <table className="pm-table">
                         <thead>
-                            <tr style={{ backgroundColor: '#2196F3', color: 'white' }}>
-                                <th style={{ padding: '15px', textAlign: 'left' }}>Name</th>
-                                <th style={{ padding: '15px', textAlign: 'left' }}>Description</th>
-                                <th style={{ padding: '15px', textAlign: 'right' }}>Price</th>
-                                <th style={{ padding: '15px', textAlign: 'center' }}>Stock</th>
-                                <th style={{ padding: '15px', textAlign: 'center' }}>Actions</th>
+                            <tr>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredProducts.map((product, index) => (
-                                <tr 
-                                    key={product.id}
-                                    style={{ 
-                                        backgroundColor: index % 2 === 0 ? '#fff' : '#fafafa',
-                                        borderBottom: '1px solid #e0e0e0'
-                                    }}
-                                >
-                                    <td style={{ padding: '15px', fontWeight: '500' }}>
+                            {filteredProducts.map((product) => (
+                                <tr key={product.id}>
+                                    <td>
                                         {product.name}
                                     </td>
-                                    <td style={{ padding: '15px', color: '#666', maxWidth: '300px' }}>
+                                    <td style={{ color: '#666', maxWidth: '300px' }}>
                                         {product.description || '-'}
                                     </td>
-                                    <td style={{ padding: '15px', textAlign: 'right', fontWeight: 'bold', color: '#4CAF50' }}>
+                                    <td className="price">
                                         ₱{parseFloat(product.price).toFixed(2)}
                                     </td>
-                                    <td style={{ 
-                                        padding: '15px', 
-                                        textAlign: 'center',
-                                        color: product.stock_quantity < 10 ? '#f44336' : '#4CAF50',
-                                        fontWeight: 'bold'
-                                    }}>
+                                    <td className={`stock ${product.stock_quantity < 10 ? 'low' : ''}`}>
                                         {product.stock_quantity}
                                     </td>
-                                    <td style={{ padding: '15px', textAlign: 'center' }}>
+                                    <td className="pm-table-actions">
                                         <button
                                             onClick={() => handleEdit(product)}
-                                            style={{
-                                                padding: '6px 15px',
-                                                backgroundColor: '#2196F3',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '4px',
-                                                cursor: 'pointer',
-                                                marginRight: '5px',
-                                                fontSize: '14px'
-                                            }}
+                                            className="pm-edit-btn"
                                         >
                                             Edit
                                         </button>
                                         <button
                                             onClick={() => handleDelete(product)}
-                                            style={{
-                                                padding: '6px 15px',
-                                                backgroundColor: '#f44336',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '4px',
-                                                cursor: 'pointer',
-                                                fontSize: '14px'
-                                            }}
+                                            className="pm-delete-btn"
                                         >
                                             Delete
                                         </button>
@@ -366,12 +298,7 @@ const ProductManagement = () => {
                 )}
             </div>
 
-            <div style={{ 
-                marginTop: '20px', 
-                textAlign: 'right', 
-                color: '#999', 
-                fontSize: '14px' 
-            }}>
+            <div className="pm-footer">
                 Total Products: {filteredProducts.length}
             </div>
         </div>

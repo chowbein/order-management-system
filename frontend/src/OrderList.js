@@ -222,7 +222,9 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
                                         <th className="center-align">Quantity</th>
                                         <th className="right-align">Unit Price</th>
                                         <th className="right-align">Subtotal</th>
-                                        <th className="center-align">Actions</th>
+                                        {selectedOrder.status === 'confirmed' && (
+                                            <th className="center-align">Actions</th>
+                                        )}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -257,13 +259,16 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
                                                 <td className="right-align bold">
                                                     ₱{(parseFloat(item.unit_price) * item.quantity).toFixed(2)}
                                                 </td>
-                                                <td className="center-align">
-                                                    {selectedOrder.status === 'confirmed' && (
-                                                        <button onClick={() => setEditingItem({ id: item.id, quantity: item.quantity })}>
+                                                {selectedOrder.status === 'confirmed' && (
+                                                    <td className="center-align">
+                                                        <button 
+                                                            onClick={() => setEditingItem({ id: item.id, quantity: item.quantity })}
+                                                            className="ol-item-edit-btn"
+                                                        >
                                                             Edit
                                                         </button>
-                                                    )}
-                                                </td>
+                                                    </td>
+                                                )}
                                             </tr>
                                         );
                                     })}
@@ -275,18 +280,18 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
                         
                         <div className="ol-details-actions">
                             <button
-                                onClick={() => handleAction('confirm')}
-                                disabled={actionLoading || selectedOrder.status !== 'pending'}
-                                className="ol-action-btn confirm"
-                            >
-                                Confirm Order
-                            </button>
-                            <button
                                 onClick={() => handleAction('cancel')}
                                 disabled={actionLoading || selectedOrder.status === 'cancelled'}
                                 className="ol-action-btn cancel"
                             >
                                 Cancel Order
+                            </button>
+                            <button
+                                onClick={() => handleAction('confirm')}
+                                disabled={actionLoading || selectedOrder.status !== 'pending'}
+                                className="ol-action-btn confirm"
+                            >
+                                Confirm Order
                             </button>
                         </div>
                     </>

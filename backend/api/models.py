@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import CheckConstraint, Q
 
 class Product(models.Model):
     """Product model for inventory management"""
@@ -10,6 +11,9 @@ class Product(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        constraints = [
+            CheckConstraint(check=Q(stock_quantity__gte=0), name='stock_quantity_non_negative')
+        ]
 
     def __str__(self):
         return self.name

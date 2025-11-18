@@ -10,6 +10,7 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
     const [message, setMessage] = useState(null);
+    const [editingItem, setEditingItem] = useState(null); // Tracks { id: itemId, quantity: newQuantity }
 
     useEffect(() => {
         fetchOrders();
@@ -85,6 +86,33 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
             } finally {
                 setActionLoading(false);
             }
+        }
+    };
+
+    const handleUpdateItem = async () => {
+        if (!selectedOrder || !editingItem) return;
+    
+        setActionLoading(true);
+        setMessage(null);
+        try {
+            const response = await axios.post(`${API_BASE_URL}/api/orders/${selectedOrder.id}/update-item/`, {
+                order_item_id: editingItem.id,
+                new_quantity: editingItem.quantity
+            });
+            setMessage({ type: 'success', text: response.data.message });
+            setEditingItem(null); // Exit edit mode
+            await fetchOrders(); // This re-fetches the entire list
+            // Find the updated order in the refreshed list to update the view
+            const updatedOrderFromServer = response.data.order;
+            const refreshedOrders = await axios.get(`${API_BASE_URL}/api/orders/`);
+            const finalUpdatedOrder = refreshedOrders.data.find(o => o.id === updatedOrderFromServer.id);
+            setSelectedOrder(finalUpdatedOrder || null);
+
+        } catch (err) {
+            console.error('Error updating item:', err);
+            setMessage({ type: 'error', text: err.response?.data?.error || 'Failed to update item' });
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -177,7 +205,7 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
                         
                         <div style={{ backgroundColor: '#f5f5f5', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
                             <p><strong>Order Number:</strong> {selectedOrder.order_number}</p>
-                            <p><strong>Total Amount:</strong> ${parseFloat(selectedOrder.total_amount).toFixed(2)}</p>
+                            <p><strong>Total Amount:</strong> ₱{parseFloat(selectedOrder.total_amount).toFixed(2)}</p>
                             <p><strong>Created At:</strong> {new Date(selectedOrder.created_at).toLocaleString()}</p>
                         </div>
 
@@ -194,35 +222,47 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {selectedOrder.items.map((item) => (
-                                        <tr key={item.id}>
-                                            <td style={{ padding: '12px' }}>{item.product_name}</td>
-                                            <td style={{ padding: '12px', textAlign: 'center' }}>{item.quantity}</td>
-                                            <td style={{ padding: '12px', textAlign: 'right' }}>${parseFloat(item.unit_price).toFixed(2)}</td>
-                                            <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold' }}>
-                                                ${(parseFloat(item.unit_price) * item.quantity).toFixed(2)}
-                                            </td>
-                                            <td style={{ padding: '12px', textAlign: 'center' }}>
-                                                {selectedOrder.status === 'confirmed' && (
-                                                    <button
-                                                        onClick={() => handleCancelItem(item.id)}
-                                                        disabled={actionLoading}
-                                                        style={{
-                                                            padding: '4px 10px',
-                                                            fontSize: '12px',
-                                                            backgroundColor: '#ff9800',
-                                                            color: 'white',
-                                                            border: 'none',
-                                                            borderRadius: '4px',
-                                                            cursor: 'pointer'
-                                                        }}
-                                                    >
-                                                        Cancel Item
-                                                    </button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {selectedOrder.items.map(item => {
+                                        const isEditing = editingItem?.id === item.id;
+                                        return isEditing ? (
+                                            <tr key={item.id}>
+                                                <td>{item.product_name}</td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <input
+                                                        type="number"
+                                                        value={editingItem.quantity}
+                                                        onChange={(e) => setEditingItem({ ...editingItem, quantity: parseInt(e.target.value) })}
+                                                        style={{ width: '70px', padding: '5px', textAlign: 'center' }}
+                                                        min="0"
+                                                    />
+                                                </td>
+                                                <td style={{ textAlign: 'right' }}>₱{parseFloat(item.unit_price).toFixed(2)}</td>
+                                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
+                                                    ₱{(parseFloat(item.unit_price) * editingItem.quantity).toFixed(2)}
+                                                </td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    <button onClick={handleUpdateItem} disabled={actionLoading}>Save</button>
+                                                    <button onClick={() => setEditingItem(null)} style={{ marginLeft: '5px' }}>Cancel</button>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            <tr key={item.id}>
+                                                <td>{item.product_name}</td>
+                                                <td style={{ textAlign: 'center' }}>{item.quantity}</td>
+                                                <td style={{ textAlign: 'right' }}>₱{parseFloat(item.unit_price).toFixed(2)}</td>
+                                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
+                                                    ₱{(parseFloat(item.unit_price) * item.quantity).toFixed(2)}
+                                                </td>
+                                                <td style={{ textAlign: 'center' }}>
+                                                    {selectedOrder.status === 'confirmed' && (
+                                                        <button onClick={() => setEditingItem({ id: item.id, quantity: item.quantity })}>
+                                                            Edit
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         ) : (

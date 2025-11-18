@@ -88,7 +88,7 @@ const Dashboard = () => {
                         Total Revenue
                     </div>
                     <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#4CAF50' }}>
-                        ${(statistics?.total_revenue || 0).toFixed(2)}
+                        ₱{(statistics?.total_revenue || 0).toFixed(2)}
                     </div>
                     <div style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>
                         From confirmed orders
@@ -151,7 +151,7 @@ const Dashboard = () => {
                                             {product.stock_quantity}
                                         </td>
                                         <td style={{ padding: '15px', textAlign: 'right' }}>
-                                            ${parseFloat(product.price).toFixed(2)}
+                                            ₱{parseFloat(product.price).toFixed(2)}
                                         </td>
                                         <td style={{ padding: '15px', textAlign: 'center' }}>
                                             <span style={{

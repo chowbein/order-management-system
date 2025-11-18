@@ -46,7 +46,7 @@ const ProductList = () => {
                     {products.map(product => (
                         <tr key={product.id}>
                             <td>{product.name}</td>
-                            <td>${product.price}</td>
+                            <td>₱{product.price}</td>
                             <td>{product.stock_quantity}</td>
                         </tr>
                     ))}

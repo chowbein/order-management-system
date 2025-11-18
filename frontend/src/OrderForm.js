@@ -70,7 +70,7 @@ const OrderForm = ({ onOrderCreated }) => {
         // Validate order items
         const validItems = orderItems.filter(item => item.product && item.quantity > 0);
         if (validItems.length === 0) {
-            setError('Please add at least one item to the order');
+            setError('Please add at least one item with a quantity greater than 0');
             setLoading(false);
             return;
         }
@@ -249,7 +249,7 @@ const OrderForm = ({ onOrderCreated }) => {
                                             value={product.id}
                                             disabled={product.stock_quantity === 0}
                                         >
-                                            {product.name} (${product.price}) - Stock: {product.stock_quantity}
+                                            {product.name} (₱{product.price}) - Stock: {product.stock_quantity}
                                             {product.stock_quantity === 0 ? ' - OUT OF STOCK' : ''}
                                         </option>
                                     ))}
@@ -265,21 +265,21 @@ const OrderForm = ({ onOrderCreated }) => {
                                 <label style={{ display: 'block', marginBottom: '5px' }}>Quantity:</label>
                                 <input
                                     type="number"
-                                    min="1"
+                                    min="0"
                                     value={item.quantity}
-                                    onChange={(e) => updateOrderItem(index, 'quantity', parseInt(e.target.value) || 1)}
+                                    onChange={(e) => updateOrderItem(index, 'quantity', parseInt(e.target.value) || 0)}
                                     style={{ 
                                         padding: '8px', 
                                         width: '100%', 
                                         fontSize: '14px',
-                                        border: item.quantity <= 0 ? '2px solid #f44336' : '1px solid #ddd',
+                                        border: item.quantity < 0 ? '2px solid #f44336' : '1px solid #ddd',
                                         borderRadius: '4px'
                                     }}
                                     required
                                 />
-                                {item.quantity <= 0 && (
+                                {item.quantity < 0 && (
                                     <div style={{ color: '#f44336', fontSize: '11px', marginTop: '2px' }}>
-                                        Must be &gt; 0
+                                        Cannot be negative
                                     </div>
                                 )}
                             </div>
@@ -288,7 +288,7 @@ const OrderForm = ({ onOrderCreated }) => {
                                 <label style={{ display: 'block', marginBottom: '5px' }}>Price:</label>
                                 <input
                                     type="text"
-                                    value={`$${item.price}`}
+                                    value={`₱${item.price}`}
                                     readOnly
                                     style={{ padding: '8px', width: '100%', fontSize: '14px', backgroundColor: '#f5f5f5' }}
                                 />
@@ -298,7 +298,7 @@ const OrderForm = ({ onOrderCreated }) => {
                                 <label style={{ display: 'block', marginBottom: '5px' }}>Subtotal:</label>
                                 <input
                                     type="text"
-                                    value={`$${(item.price * item.quantity).toFixed(2)}`}
+                                    value={`₱${(item.price * item.quantity).toFixed(2)}`}
                                     readOnly
                                     style={{ padding: '8px', width: '100%', fontSize: '14px', backgroundColor: '#f5f5f5', fontWeight: 'bold' }}
                                 />
@@ -342,7 +342,7 @@ const OrderForm = ({ onOrderCreated }) => {
                 </button>
 
                 <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
-                    <h3 style={{ margin: '0 0 10px 0' }}>Total: ${calculateTotal()}</h3>
+                    <h3 style={{ margin: '0 0 10px 0' }}>Total: ₱{calculateTotal()}</h3>
                 </div>
 
                 <button

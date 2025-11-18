@@ -20,6 +20,43 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [AllowAny]  # Change this to appropriate permissions in production
 
+    def perform_create(self, serializer):
+        product = serializer.save()
+        InventoryLog.objects.create(
+            product=product,
+            change_type='addition',
+            quantity_change=product.stock_quantity,
+            reason='Product created'
+        )
+
+    def perform_update(self, serializer):
+        original_product = self.get_object()
+        original_quantity = original_product.stock_quantity
+        
+        updated_product = serializer.save()
+        new_quantity = updated_product.stock_quantity
+        
+        quantity_diff = new_quantity - original_quantity
+        
+        if quantity_diff != 0:
+            change_type = 'addition' if quantity_diff > 0 else 'deduction'
+            InventoryLog.objects.create(
+                product=updated_product,
+                change_type=change_type,
+                quantity_change=quantity_diff,
+                reason='Stock manually updated'
+            )
+
+    def perform_destroy(self, instance):
+        if instance.stock_quantity > 0:
+            InventoryLog.objects.create(
+                product=instance,
+                change_type='deduction',
+                quantity_change=-instance.stock_quantity,
+                reason=f'Product "{instance.name}" deleted'
+            )
+        instance.delete()
+
 
 class OrderViewSet(viewsets.ModelViewSet):
     """
@@ -65,8 +102,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Get all order items
-        order_items = OrderItem.objects.filter(order=order).select_related('product')
+        # Lock products to prevent race conditions before checking stock
+        order_items = order.items.select_related('product').select_for_update(of=('product',))
 
         # First, validate that all products have sufficient stock
         for item in order_items:
@@ -196,7 +233,8 @@ class OrderViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Only items from confirmed orders can be modified.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            item = OrderItem.objects.get(id=item_id, order=order)
+            # Lock the item and its product to prevent race conditions
+            item = OrderItem.objects.select_related('product').select_for_update(of=('self', 'product')).get(id=item_id, order=order)
         except OrderItem.DoesNotExist:
             return Response({'error': 'Order item not found.'}, status=status.HTTP_404_NOT_FOUND)
 

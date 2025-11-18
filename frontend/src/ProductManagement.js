@@ -18,6 +18,8 @@ const ProductManagement = () => {
         stock_quantity: ''
     });
 
+    const [searchTerm, setSearchTerm] = useState('');
+
     useEffect(() => {
         fetchProducts();
     }, []);
@@ -119,25 +121,37 @@ const ProductManagement = () => {
         return <div style={{ padding: '20px' }}>Loading products...</div>;
     }
 
+    const filteredProducts = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div style={{ padding: '20px', maxWidth: '1200px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ margin: 0 }}>Product Management</h2>
-                <button
-                    onClick={handleAddNew}
-                    style={{
-                        padding: '10px 20px',
-                        backgroundColor: '#4CAF50',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        fontSize: '16px',
-                        fontWeight: 'bold'
-                    }}
-                >
-                    + Add New Product
-                </button>
+                <div style={{ display: 'flex', gap: '15px' }}>
+                    <input
+                        type="text"
+                        placeholder="Search by product name..."
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ padding: '10px', fontSize: '14px', width: '250px' }}
+                    />
+                    <button
+                        onClick={handleAddNew}
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: '#4CAF50',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '16px',
+                            fontWeight: 'bold'
+                        }}
+                    >
+                        + Add New Product
+                    </button>
+                </div>
             </div>
 
             {message && (
@@ -271,7 +285,7 @@ const ProductManagement = () => {
 
             {/* Products Table */}
             <div style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
-                {products.length === 0 ? (
+                {filteredProducts.length === 0 ? (
                     <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
                         <div style={{ fontSize: '48px', marginBottom: '10px' }}>📦</div>
                         <div style={{ fontSize: '18px' }}>No products found</div>
@@ -289,7 +303,7 @@ const ProductManagement = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {products.map((product, index) => (
+                            {filteredProducts.map((product, index) => (
                                 <tr 
                                     key={product.id}
                                     style={{ 
@@ -304,7 +318,7 @@ const ProductManagement = () => {
                                         {product.description || '-'}
                                     </td>
                                     <td style={{ padding: '15px', textAlign: 'right', fontWeight: 'bold', color: '#4CAF50' }}>
-                                        ${parseFloat(product.price).toFixed(2)}
+                                        ₱{parseFloat(product.price).toFixed(2)}
                                     </td>
                                     <td style={{ 
                                         padding: '15px', 
@@ -358,7 +372,7 @@ const ProductManagement = () => {
                 color: '#999', 
                 fontSize: '14px' 
             }}>
-                Total Products: {products.length}
+                Total Products: {filteredProducts.length}
             </div>
         </div>
     );

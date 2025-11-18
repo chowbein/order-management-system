@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from './apiConfig';
 
 const ActivityLog = () => {
     const [logs, setLogs] = useState([]);
@@ -14,7 +15,7 @@ const ActivityLog = () => {
     const fetchActivityLogs = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:8000/api/activity-log/');
+            const response = await axios.get(`${API_BASE_URL}/api/activity-log/`);
             setLogs(response.data);
             setError(null);
         } catch (err) {

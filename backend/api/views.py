@@ -170,6 +170,77 @@ class OrderViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK
         )
 
+    @action(detail=True, methods=['post'], url_path='update-item')
+    @transaction.atomic
+    def update_item_quantity(self, request, pk=None):
+        """
+        Updates the quantity of an item in a confirmed order.
+        Setting quantity to 0 will remove the item.
+        Expects {'order_item_id': <id>, 'new_quantity': <int>}
+        """
+        order = self.get_object()
+        item_id = request.data.get('order_item_id')
+        new_quantity = request.data.get('new_quantity')
+
+        if item_id is None or new_quantity is None:
+            return Response({'error': 'order_item_id and new_quantity are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            new_quantity = int(new_quantity)
+            if new_quantity < 0:
+                raise ValueError()
+        except (ValueError, TypeError):
+            return Response({'error': 'New quantity must be a non-negative integer'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if order.status != 'confirmed':
+            return Response({'error': 'Only items from confirmed orders can be modified.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            item = OrderItem.objects.get(id=item_id, order=order)
+        except OrderItem.DoesNotExist:
+            return Response({'error': 'Order item not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        product = item.product
+        old_quantity = item.quantity
+        quantity_diff = new_quantity - old_quantity
+
+        if quantity_diff == 0:
+            return Response({'message': 'No change in quantity', 'order': self.get_serializer(order).data})
+
+        # --- Handle Quantity Increase ---
+        if quantity_diff > 0:
+            if product.stock_quantity < quantity_diff:
+                return Response({'error': f'Insufficient stock for {product.name}. Only {product.stock_quantity} more available.'}, status=status.HTTP_400_BAD_REQUEST)
+            product.stock_quantity -= quantity_diff
+            change_type = 'deduction'
+            activity_desc = f"Increased quantity of '{product.name}' by {quantity_diff}."
+        
+        # --- Handle Quantity Decrease ---
+        else: # quantity_diff < 0
+            product.stock_quantity += abs(quantity_diff)
+            change_type = 'addition'
+            activity_desc = f"Decreased quantity of '{product.name}' by {abs(quantity_diff)}."
+
+        # Update product stock
+        product.save()
+
+        # Update order total
+        order.total_amount += (item.unit_price * quantity_diff)
+        order.save()
+
+        # Create Logs
+        InventoryLog.objects.create(product=product, change_type=change_type, quantity_change=-quantity_diff, reason=f'Order {order.order_number} item edit')
+        OrderActivity.objects.create(order=order, activity_type="Order Item Updated", description=activity_desc)
+
+        # Update or delete item
+        if new_quantity == 0:
+            item.delete()
+        else:
+            item.quantity = new_quantity
+            item.save()
+
+        return Response({'message': 'Order item updated successfully', 'order': self.get_serializer(order).data})
+
 
 class OrderItemViewSet(viewsets.ModelViewSet):
     """

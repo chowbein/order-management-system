@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from './apiConfig';
 
 const OrderList = ({ selectedOrderId: initialSelectedId }) => {
     const [orders, setOrders] = useState([]);
@@ -24,7 +25,7 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
     const fetchOrders = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:8000/api/orders/');
+            const response = await axios.get(`${API_BASE_URL}/api/orders/`);
             // Sort orders by most recent first
             const sortedOrders = response.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             setOrders(sortedOrders);
@@ -48,7 +49,7 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
             setActionLoading(true);
             setMessage(null);
             try {
-                const response = await axios.post(`http://localhost:8000/api/orders/${selectedOrder.id}/${actionType}/`);
+                const response = await axios.post(`${API_BASE_URL}/api/orders/${selectedOrder.id}/${actionType}/`);
                 setMessage({ type: 'success', text: response.data.message });
                 // Refresh the list and the selected order details
                 await fetchOrders();
@@ -57,6 +58,30 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
             } catch (err) {
                 console.error(`Error ${actionType}ing order:`, err);
                 setMessage({ type: 'error', text: err.response?.data?.error || `Failed to ${actionType} order` });
+            } finally {
+                setActionLoading(false);
+            }
+        }
+    };
+
+    const handleCancelItem = async (itemId) => {
+        if (!selectedOrder) return;
+
+        if (window.confirm('Are you sure you want to cancel this single item? Stock will be restored.')) {
+            setActionLoading(true);
+            setMessage(null);
+            try {
+                const response = await axios.post(`${API_BASE_URL}/api/orders/${selectedOrder.id}/cancel-item/`, {
+                    order_item_id: itemId
+                });
+                setMessage({ type: 'success', text: response.data.message });
+                // Refresh data
+                await fetchOrders();
+                const updatedOrder = response.data.order;
+                setSelectedOrder(updatedOrder);
+            } catch (err) {
+                console.error('Error cancelling item:', err);
+                setMessage({ type: 'error', text: err.response?.data?.error || 'Failed to cancel item' });
             } finally {
                 setActionLoading(false);
             }
@@ -165,6 +190,7 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
                                         <th style={{ padding: '12px', textAlign: 'center' }}>Quantity</th>
                                         <th style={{ padding: '12px', textAlign: 'right' }}>Unit Price</th>
                                         <th style={{ padding: '12px', textAlign: 'right' }}>Subtotal</th>
+                                        <th style={{ padding: '12px', textAlign: 'center' }}>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -175,6 +201,25 @@ const OrderList = ({ selectedOrderId: initialSelectedId }) => {
                                             <td style={{ padding: '12px', textAlign: 'right' }}>${parseFloat(item.unit_price).toFixed(2)}</td>
                                             <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold' }}>
                                                 ${(parseFloat(item.unit_price) * item.quantity).toFixed(2)}
+                                            </td>
+                                            <td style={{ padding: '12px', textAlign: 'center' }}>
+                                                {selectedOrder.status === 'confirmed' && (
+                                                    <button
+                                                        onClick={() => handleCancelItem(item.id)}
+                                                        disabled={actionLoading}
+                                                        style={{
+                                                            padding: '4px 10px',
+                                                            fontSize: '12px',
+                                                            backgroundColor: '#ff9800',
+                                                            color: 'white',
+                                                            border: 'none',
+                                                            borderRadius: '4px',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        Cancel Item
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}

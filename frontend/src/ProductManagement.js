@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from './apiConfig';
 
 const ProductManagement = () => {
     const [products, setProducts] = useState([]);
@@ -24,7 +25,7 @@ const ProductManagement = () => {
     const fetchProducts = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:8000/api/products/');
+            const response = await axios.get(`${API_BASE_URL}/api/products/`);
             setProducts(response.data);
             setError(null);
         } catch (err) {
@@ -77,11 +78,11 @@ const ProductManagement = () => {
         try {
             if (editingProduct) {
                 // Update existing product
-                await axios.put(`http://localhost:8000/api/products/${editingProduct.id}/`, formData);
+                await axios.put(`${API_BASE_URL}/api/products/${editingProduct.id}/`, formData);
                 setMessage({ type: 'success', text: 'Product updated successfully!' });
             } else {
                 // Create new product
-                await axios.post('http://localhost:8000/api/products/', formData);
+                await axios.post(`${API_BASE_URL}/api/products/`, formData);
                 setMessage({ type: 'success', text: 'Product created successfully!' });
             }
             
@@ -100,7 +101,7 @@ const ProductManagement = () => {
     const handleDelete = async (product) => {
         if (window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
             try {
-                await axios.delete(`http://localhost:8000/api/products/${product.id}/`);
+                await axios.delete(`${API_BASE_URL}/api/products/${product.id}/`);
                 setMessage({ type: 'success', text: 'Product deleted successfully!' });
                 fetchProducts();
                 setTimeout(() => setMessage(null), 3000);

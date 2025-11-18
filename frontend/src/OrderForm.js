@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from './apiConfig';
 
 const OrderForm = ({ onOrderCreated }) => {
     const [products, setProducts] = useState([]);
@@ -15,7 +16,7 @@ const OrderForm = ({ onOrderCreated }) => {
 
     const fetchProducts = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/api/products/');
+            const response = await axios.get(`${API_BASE_URL}/api/products/`);
             setProducts(response.data);
         } catch (err) {
             console.error('Error fetching products:', err);
@@ -119,7 +120,7 @@ const OrderForm = ({ onOrderCreated }) => {
                 total_amount: totalAmount
             };
 
-            const orderResponse = await axios.post('http://localhost:8000/api/orders/', orderData);
+            const orderResponse = await axios.post(`${API_BASE_URL}/api/orders/`, orderData);
             createdOrderId = orderResponse.data.id;
 
             if (!createdOrderId) {
@@ -130,7 +131,7 @@ const OrderForm = ({ onOrderCreated }) => {
             for (let i = 0; i < validItems.length; i++) {
                 const item = validItems[i];
                 try {
-                    await axios.post('http://localhost:8000/api/order-items/', {
+                    await axios.post(`${API_BASE_URL}/api/order-items/`, {
                         order: createdOrderId,
                         product: parseInt(item.product),
                         quantity: parseInt(item.quantity),
@@ -140,7 +141,7 @@ const OrderForm = ({ onOrderCreated }) => {
                     console.error(`Error creating order item ${i + 1}:`, itemError);
                     // If any item fails, try to delete the order (cleanup)
                     try {
-                        await axios.delete(`http://localhost:8000/api/orders/${createdOrderId}/`);
+                        await axios.delete(`${API_BASE_URL}/api/orders/${createdOrderId}/`);
                     } catch (deleteError) {
                         console.error('Failed to cleanup order:', deleteError);
                     }

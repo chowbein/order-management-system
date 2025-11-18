@@ -1,6 +1,19 @@
 import React from 'react';
 import './ProductForm.css';
 
+/**
+ * ProductForm Component
+ * 
+ * A reusable form for creating and editing products.
+ * It is displayed within a modal in the ProductManagement component.
+ * 
+ * Props:
+ * - `formData`: An object containing the current values for the form fields (name, description, etc.).
+ * - `onInputChange`: A function to handle input changes and update the form state.
+ * - `onSubmit`: A function to handle the form submission.
+ * - `onCancel`: A function to handle the cancellation action, typically closing the modal.
+ * - `editingProduct`: The product object being edited, or null if creating a new product. This is used to adjust labels and button text.
+ */
 const ProductForm = ({ formData, onInputChange, onSubmit, onCancel, editingProduct }) => {
     return (
         <div className="product-form-container">

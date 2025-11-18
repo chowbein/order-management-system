@@ -16,7 +16,7 @@ import './ProductManagement.css';
  * 
  * Features:
  * - Real-time search/filter
- * - Inline editing with modal form
+ * - Create and edit products via a modal form
  * - Stock level indicators (critical, low, good)
  * - Automatic inventory logging (handled by backend)
  * 

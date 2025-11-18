@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from api.views import ProductViewSet, OrderViewSet, OrderItemViewSet, InventoryLogViewSet
+from api.views import ProductViewSet, OrderViewSet, OrderItemViewSet, InventoryLogViewSet, dashboard_statistics
 
 # Create a router and register our viewsets with it
 router = DefaultRouter()
@@ -29,4 +29,5 @@ router.register(r'inventory-logs', InventoryLogViewSet, basename='inventorylog')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    path('api/dashboard/', dashboard_statistics, name='dashboard-statistics'),
 ]

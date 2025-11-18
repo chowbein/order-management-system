@@ -1,8 +1,9 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django.db import transaction
+from django.db.models import Sum, Q
 from .models import Product, Order, OrderItem, InventoryLog
 from .serializers import ProductSerializer, OrderSerializer, OrderItemSerializer, InventoryLogSerializer
 
@@ -161,3 +162,32 @@ class InventoryLogViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = InventoryLog.objects.all().select_related('product')
     serializer_class = InventoryLogSerializer
     permission_classes = [AllowAny]  # Change this to appropriate permissions in production
+
+
+@api_view(['GET'])
+def dashboard_statistics(request):
+    """
+    Read-only API view that returns dashboard statistics:
+    - total_orders: Total count of all orders
+    - total_revenue: Sum of total_amount for confirmed orders
+    - low_stock_products: List of products with stock_quantity < 10
+    """
+    # Get total number of orders
+    total_orders = Order.objects.count()
+    
+    # Calculate total revenue from confirmed orders
+    revenue_aggregate = Order.objects.filter(status='confirmed').aggregate(
+        total=Sum('total_amount')
+    )
+    total_revenue = float(revenue_aggregate['total'] or 0)
+    
+    # Get products with low stock (below 10)
+    low_stock_products = Product.objects.filter(stock_quantity__lt=10).values(
+        'id', 'name', 'stock_quantity', 'price'
+    )
+    
+    return Response({
+        'total_orders': total_orders,
+        'total_revenue': total_revenue,
+        'low_stock_products': list(low_stock_products)
+    })

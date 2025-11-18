@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import './App.css';
+import Dashboard from './Dashboard';
 import ProductList from './ProductList';
 import OrderForm from './OrderForm';
 import OrderDetails from './OrderDetails';
 import ActivityLog from './ActivityLog';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('products');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedOrderId, setSelectedOrderId] = useState(null);
 
   const handleOrderCreated = (orderId) => {
@@ -32,6 +33,9 @@ function App() {
       </div>
       
       <div style={{ display: 'flex', borderBottom: '2px solid #2196F3' }}>
+        <button onClick={() => setActiveTab('dashboard')} style={tabStyle('dashboard')}>
+          Dashboard
+        </button>
         <button onClick={() => setActiveTab('products')} style={tabStyle('products')}>
           Products
         </button>
@@ -47,6 +51,7 @@ function App() {
       </div>
 
       <div style={{ padding: '20px' }}>
+        {activeTab === 'dashboard' && <Dashboard />}
         {activeTab === 'products' && <ProductList />}
         {activeTab === 'createOrder' && <OrderForm onOrderCreated={handleOrderCreated} />}
         {activeTab === 'orderDetails' && (

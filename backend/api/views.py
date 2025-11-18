@@ -156,37 +156,31 @@ class OrderViewSet(viewsets.ModelViewSet):
     def cancel(self, request, pk=None):
         """
         Custom action to cancel an order.
-        - Increases stock quantity for each product in the order (restores inventory)
-        - Creates inventory log entries
-        - Updates order status to 'cancelled'
+        - Restores inventory ONLY if the order was 'confirmed'.
+        - Updates order status to 'cancelled'.
         """
         order = self.get_object()
 
-        # Check if order is already cancelled
         if order.status == 'cancelled':
-            return Response(
-                {'error': 'Order is already cancelled'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({'error': 'Order is already cancelled'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Get all order items
-        order_items = OrderItem.objects.filter(order=order).select_related('product')
+        # Only restore stock if the order was confirmed
+        if order.status == 'confirmed':
+            order_items = order.items.select_related('product')
+            for item in order_items:
+                # Restore stock quantity
+                item.product.stock_quantity += item.quantity
+                item.product.save()
 
-        # Process each order item
-        for item in order_items:
-            # Increase stock quantity (restore inventory)
-            item.product.stock_quantity += item.quantity
-            item.product.save()
+                # Create inventory log for the restoration
+                InventoryLog.objects.create(
+                    product=item.product,
+                    change_type='addition',
+                    quantity_change=item.quantity,
+                    reason=f'Order {order.order_number} cancelled (stock restored)'
+                )
 
-            # Create inventory log entry
-            InventoryLog.objects.create(
-                product=item.product,
-                change_type='addition',
-                quantity_change=item.quantity,
-                reason=f'Order {order.order_number} cancelled'
-            )
-
-        # Update order status
+        # Update order status to 'cancelled' regardless
         order.status = 'cancelled'
         order.save()
 
@@ -197,7 +191,6 @@ class OrderViewSet(viewsets.ModelViewSet):
             description=f"Order status changed to 'cancelled'."
         )
 
-        # Serialize and return the updated order
         serializer = self.get_serializer(order)
         return Response(
             {
